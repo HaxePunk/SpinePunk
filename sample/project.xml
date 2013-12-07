@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	<meta title="sample" package="com.example.app" version="1.0.0" company="" />
+
+ 	<app file="Main" main="Main" path="bin" />
+
+	<window fps="60" background="0x333333" />
+	<window width="800" height="600" resizable="true" />
+	<window fullscreen="true" if="mobile" />
+	<window orientation="landscape" vsync="true" antialiasing="0" if="cpp" />
+
+	<source path="src" />
+
+	<haxelib name="openfl" />
+	<haxelib name="openfl-native" if="neko" />
+	<haxelib name="HaxePunk" />
+	<haxelib name="SpinePunk" />
+
+    <assets path="assets" rename="assets" />
+</project>
