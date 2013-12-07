@@ -67,7 +67,6 @@ class SpinePunk extends Entity {
         skeleton.setX(0);
         skeleton.setY(0);
         skeleton.setFlipY(true);
-        //skeleton.setFlipX(true);
         
         cachedSprites = new ObjectMap();
         wrapperAngles = new ObjectMap();
@@ -162,8 +161,8 @@ class SpinePunk extends Entity {
                 var relX:Float = (dx * cos * scaleX - dy * sin * scaleY);
                 var relY:Float = (dx * sin * scaleX + dy * cos * scaleY);
                 
-                wrapper.x = this.x + relX;// - wrapper.width * 0.5;
-                wrapper.y = this.y + relY;// - wrapper.height * 0.5;
+                wrapper.x = this.x + relX;
+                wrapper.y = this.y + relY;
                 
                 wrapper.angle = ((bone.worldRotation + regionAttachment.rotation) + wrapperAngle) * flip + angle;
                 wrapper.scaleX = (bone.worldScaleX + regionAttachment.scaleX - 1) * flipX * scaleX;
@@ -184,24 +183,6 @@ class SpinePunk extends Entity {
         setHitbox(cast _aabb.width, cast _aabb.height, cast _aabb.width/2, cast _aabb.height/2);
     }
     
-    /*override public function drawDebugOnCamera(Camera:FlxCamera = null):Void {
-        super.drawDebugOnCamera(Camera);
-        
-        collider.drawDebugOnCamera(Camera);
-        
-        var drawOrder:Array<Slot> = skeleton.drawOrder;
-        for (slot in drawOrder) 
-        {
-            var attachment:Attachment = slot.attachment;
-            if (Std.is(attachment, RegionAttachment)) 
-            {
-                var regionAttachment:RegionAttachment = cast attachment;
-                var wrapper:FlxSprite = get(regionAttachment);
-                wrapper.drawDebugOnCamera(Camera);
-            }
-        }
-    }*/
-    
     public function getImage(regionAttachment:RegionAttachment):Image {
         if (cachedSprites.exists(regionAttachment))
             return cachedSprites.get(regionAttachment);
@@ -212,14 +193,7 @@ class SpinePunk extends Entity {
         var cachedGraphic:BitmapData = texture.bd;
         var atlasData:AtlasData = AtlasData.create(cachedGraphic);
         
-        var rect = new Rectangle(region.getRegionX(), region.getRegionY());
-        /*if (region.rotate) {
-            rect.width = region.getRegionHeight();
-            rect.height = region.getRegionWidth();
-        } else {*/
-            rect.width = region.getRegionWidth();
-            rect.height = region.getRegionHeight();
-        /*}*/
+        var rect = new Rectangle(region.getRegionX(), region.getRegionY(), region.getRegionWidth(), region.getRegionHeight());
         
         var wrapper:Image;
         
@@ -235,7 +209,6 @@ class SpinePunk extends Entity {
         wrapper.originY = region.getRegionHeight() / 2;
         if (region.rotate) {
             wrapper.angle = -90;
-            //wrapper.originX -= region.getRegionWidth();
         }
         
         cachedSprites.set(regionAttachment, wrapper);
