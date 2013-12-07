@@ -1,6 +1,6 @@
 {
-    "name": "spinepunk",
-    "url": "https://github.com/bendmorris/spinepunk",
+    "name": "SpinePunk",
+    "url": "https://github.com/bendmorris/SpinePunk",
     "license": "BSD",
     "tags": [ "spine", "animation", "cross", "neko", "flash", "js", "cpp"],
     "description": "SpinePunk is a HaxePunk port of spine-libgdx skeletal animation runtime.",
