@@ -35,11 +35,12 @@ class SpinePunk extends Entity {
     public var state:AnimationState;
     public var stateData:AnimationStateData;
     public var angle:Float=0;
-    public var scaleX = 1;
-    public var scaleY = 1;
-    public var scale = 1;
-    public var scrollX = 1;
-    public var scrollY = 1;
+    public var scaleX:Float = 1;
+    public var scaleY:Float = 1;
+    public var scale:Float = 1;
+    public var scrollX:Float = 1;
+    public var scrollY:Float = 1;
+    public var speed:Float = 1;
     
     public var wrapperAngles:ObjectMap<RegionAttachment, Float>;
     public var cachedSprites:ObjectMap<RegionAttachment, Image>;
@@ -114,7 +115,7 @@ class SpinePunk extends Entity {
     }
     
     public override function update():Void {
-        state.update(HXP.elapsed);
+        state.update(HXP.elapsed*speed);
         state.apply(skeleton);
         skeleton.updateWorldTransform();
         

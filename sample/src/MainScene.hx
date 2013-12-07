@@ -60,6 +60,7 @@ class MainScene extends Scene {
         skeleton.flipY = true;
         skeleton.state = state;
         skeleton.stateData = stateData;
+        skeleton.speed = 1.5;
         
         //skeleton.updateWorldTransform();
         
