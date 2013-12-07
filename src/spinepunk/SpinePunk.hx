@@ -42,6 +42,8 @@ class SpinePunk extends Entity {
     public var scrollY:Float = 1;
     public var speed:Float = 1;
     
+    public static var atlasData:AtlasData;
+    
     public var wrapperAngles:ObjectMap<RegionAttachment, Float>;
     public var cachedSprites:ObjectMap<RegionAttachment, Image>;
     
@@ -191,8 +193,10 @@ class SpinePunk extends Entity {
         var region:AtlasRegion = cast regionAttachment.getRegion();
         var texture:BitmapDataTexture = cast region.getTexture();
         
-        var cachedGraphic:BitmapData = texture.bd;
-        var atlasData:AtlasData = AtlasData.create(cachedGraphic);
+        if (atlasData == null) {
+            var cachedGraphic:BitmapData = texture.bd;
+            atlasData = AtlasData.create(cachedGraphic);
+        }
         
         var rect = new Rectangle(region.getRegionX(), region.getRegionY(), region.getRegionWidth(), region.getRegionHeight());
         
