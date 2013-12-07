@@ -142,8 +142,8 @@ class SpinePunk extends Entity {
         var cos:Float = Math.cos(radians);
         var sin:Float = Math.sin(radians);
         
-        var oox:Float = originX + point.x - camera.x * scrollX;
-        var ooy:Float = originY + point.y - camera.y * scrollY;
+        var oox:Float = originX - width/2;
+        var ooy:Float = originY - height;
         
         for (slot in drawOrder)  {
             var attachment:Attachment = slot.attachment;
@@ -172,13 +172,12 @@ class SpinePunk extends Entity {
                 wrapper.scaleY = (bone.worldScaleY + regionAttachment.scaleY - 1) * flipY * scaleY;
                 wrapper.render(target, point, camera);
                 
-                if (_aabb.width == 0 && _aabb.height == 0)
-                {
-                    _aabb.copyFrom(wrapper.clipRect);
-                }
-                else
-                {
-                    _aabb.union(wrapper.clipRect);
+                var wRect = new Rectangle(wrapper.x, wrapper.y, wrapper.width, wrapper.height);
+                
+                if (_aabb.width == 0 && _aabb.height == 0) {
+                    _aabb.copyFrom(wRect);
+                } else {
+                    _aabb = _aabb.union(wRect);
                 }
             }
         }
