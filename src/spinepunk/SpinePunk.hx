@@ -9,6 +9,8 @@ import com.haxepunk.Entity;
 import com.haxepunk.Graphic;
 import com.haxepunk.graphics.Image;
 import com.haxepunk.graphics.atlas.AtlasData;
+//import com.haxepunk.masks.Masklist;
+//import com.haxepunk.masks.Hitbox;
 
 import spinehx.Bone;
 import spinehx.Slot;
@@ -41,6 +43,7 @@ class SpinePunk extends Entity {
     public var scrollX:Float = 1;
     public var scrollY:Float = 1;
     public var speed:Float = 1;
+    public var color:Int = 0xffffff;
     
     public static var atlasData:AtlasData;
     
@@ -73,6 +76,8 @@ class SpinePunk extends Entity {
         
         cachedSprites = new ObjectMap();
         wrapperAngles = new ObjectMap();
+        
+        //mask = new Masklist([]);
     }
     
     public var flipX(get, set):Bool;
@@ -145,6 +150,8 @@ class SpinePunk extends Entity {
         var oox:Float = 0;
         var ooy:Float = -height/2;
         
+        //cast(mask, Masklist).removeAll();
+        
         for (slot in drawOrder)  {
             var attachment:Attachment = slot.attachment;
             if (Std.is(attachment, RegionAttachment)) {
@@ -152,7 +159,9 @@ class SpinePunk extends Entity {
                 regionAttachment.updateVertices(slot);
                 var vertices = regionAttachment.getVertices();
                 var wrapper:Image = getImage(regionAttachment);
+                wrapper.color = color;
                 var wrapperAngle:Float = wrapperAngles.get(regionAttachment);
+                
                 var region:AtlasRegion = cast regionAttachment.getRegion();
                 var bone:Bone = slot.getBone();
                 var x:Float = regionAttachment.x - region.offsetX;
@@ -161,15 +170,18 @@ class SpinePunk extends Entity {
                 var dx:Float = bone.worldX + x * bone.m00 + y * bone.m01 - oox;
                 var dy:Float = bone.worldY + x * bone.m10 + y * bone.m11 - ooy;
                 
-                var relX:Float = (dx * cos * scaleX - dy * sin * scaleY);
-                var relY:Float = (dx * sin * scaleX + dy * cos * scaleY);
+                var sx = scaleX * scale;
+                var sy = scaleY * scale;
+                
+                var relX:Float = (dx * cos * sx - dy * sin * sy);
+                var relY:Float = (dx * sin * sx + dy * cos * sy);
                 
                 wrapper.x = this.x + relX;
                 wrapper.y = this.y + relY;
                 
                 wrapper.angle = ((bone.worldRotation + regionAttachment.rotation) + wrapperAngle) * flip + angle;
-                wrapper.scaleX = (bone.worldScaleX + regionAttachment.scaleX - 1) * flipX * scaleX;
-                wrapper.scaleY = (bone.worldScaleY + regionAttachment.scaleY - 1) * flipY * scaleY;
+                wrapper.scaleX = (bone.worldScaleX + regionAttachment.scaleX - 1) * flipX * sx;
+                wrapper.scaleY = (bone.worldScaleY + regionAttachment.scaleY - 1) * flipY * sy;
                 wrapper.render(target, point, camera);
                 
                 var wRect = new Rectangle(wrapper.x-wrapper.originX, 
@@ -181,6 +193,9 @@ class SpinePunk extends Entity {
                 } else {
                     _aabb = _aabb.union(wRect);
                 }
+                
+                //cast(mask, Masklist).add(
+                //    new Hitbox(cast wRect.width, cast wRect.height, cast wRect.x, cast wRect.y));
             }
         }
         

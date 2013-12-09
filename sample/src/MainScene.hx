@@ -24,15 +24,15 @@ import nme.display.FPS;
 #end
 
 class MainScene extends Scene {
-    static inline var an1="walk";
-    static inline var an2="jump";
-    var on1=true;
-
+    static var animations=["stand", "walk", "walk", "run", "run", "jump", "draw weapon", "swing 1", "swing 2", "swing 3", "swing 1", "swing 2", "swing 3", "swing 1", "swing 1", "swing 2", "death", "revive"];
+    var on=0;
+    
     var atlas:TextureAtlas;
     var skeleton:SpinePunk;
     var root_:Bone;
     var state:AnimationState;
     var lastTime:Float = 0.0;
+    var moveSpeed=75;
     
     var mode:Int = 1;
         
@@ -47,20 +47,21 @@ class MainScene extends Scene {
         
         // Define mixing between animations.
         var stateData = new AnimationStateData(skeletonData);
-        stateData.setMixByName(an1, an2, 0);
+        /*stateData.setMixByName(an1, an2, 0);
         stateData.setMixByName(an2, an1, 0);
         stateData.setMixByName(an2, an2, 0);
-        stateData.setMixByName(an1, an2, 0);
+        stateData.setMixByName(an1, an2, 0);*/
         
         state = new AnimationState(stateData);
-        state.setAnimationByName(an1, true);
+        state.setAnimationByName(animations[0], false);
         
-        skeleton.x = 400;
+        skeleton.x = 150;
         skeleton.y = 300;
         skeleton.flipY = true;
         skeleton.state = state;
         skeleton.stateData = stateData;
-        skeleton.speed = 1.5;
+        skeleton.speed = 1;
+        skeleton.scale = 1;
         
         //skeleton.updateWorldTransform();
         
@@ -72,22 +73,50 @@ class MainScene extends Scene {
     public function onClick():Void {
 //        mode++;
 //        mode%=3;
-        on1 = !on1;
-        state.setAnimationByName(on1 ? an1 : an2, false);
+        on += 1;
+        if (on >= animations.length) {
+            on = 0;
+            skeleton.flipX = !skeleton.flipX;
+        }
+        //state.setAnimationByName(on1 ? an1 : an2, false);
         //state.addAnimationByNameSimple(an1, true);
     }
     
     public override function update() {
-        if (state.getAnimation().getName() == an1) {
-            // After one second, change the current animation. Mixing is done by AnimationState for you.
-            if (state.getTime() >= skeleton.state.getAnimation().getDuration()) {
+        var cur = animations[on];
+        var duration = skeleton.state.getAnimation().getDuration();
+        switch(cur) {
+        case 'death', 'revive': {
+            duration += 2;
+            if (cur == 'death') skeleton.color = 0x808080;
+            else skeleton.color = 0xffffff;
+        }
+        case 'swing 3': {
+            skeleton.color = 0xffffff;
+            skeleton.x += (HXP.elapsed*moveSpeed/4) * (skeleton.flipX ? -1 : 1);
+        }
+        case 'walk': {
+            skeleton.color = 0xffffff;
+            skeleton.x += (HXP.elapsed*moveSpeed) * (skeleton.flipX ? -1 : 1);
+        }
+        case 'run', 'jump': {
+            skeleton.color = 0xffffff;
+            skeleton.x += (HXP.elapsed*moveSpeed*2) * (skeleton.flipX ? -1 : 1);
+        }
+        default: 
+            skeleton.color = 0xffffff;
+        }
+        
+        if (state.getTime() >= duration) {
+            if (on + 1 >= animations.length) {
+                on = 0;
                 skeleton.skeleton.setToSetupPose();
-                state.setAnimationByName(an2, false);
-            }
-        } else {
-            if (state.getTime() > skeleton.state.getAnimation().getDuration()) {
-                skeleton.skeleton.setToSetupPose();
-                state.setAnimationByName(an1, true);
+                skeleton.flipX = !skeleton.flipX;
+                state.setAnimationByName(animations[0], false);
+            } else {
+                on += 1;
+                if (animations[on] != animations[on-1]) skeleton.skeleton.setToSetupPose();
+                state.setAnimationByName(animations[on], false);
             }
         }
         

@@ -1,6 +1,7 @@
 import com.haxepunk.Engine;
 import com.haxepunk.HXP;
 import com.haxepunk.RenderMode;
+import flash.events.Event;
 
 class Main extends Engine
 {
@@ -16,6 +17,15 @@ class Main extends Engine
         HXP.console.enable();
 #end
         HXP.scene = new MainScene();
+        
+        onResize();
+        HXP.stage.addEventListener(Event.RESIZE, onResize);
+    }
+    
+    function onResize(e:Event=null) {
+        HXP.screen.scaleX = 
+        HXP.screen.scaleY = 
+            (Math.min(HXP.screen.scaleX, HXP.screen.scaleY));
     }
 
     public static function main() { new Main(); }
