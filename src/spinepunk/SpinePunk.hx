@@ -74,7 +74,10 @@ class SpinePunk extends Entity {
     
     public var skin(default, set):String;
     function set_skin(skin:String) {
-        skeleton.setSkinByName(skin);
+        if (skin != this.skin) {
+            skeleton.setSkinByName(skin);
+            skeleton.setToSetupPose();
+        }
         return this.skin = skin;
     }
     

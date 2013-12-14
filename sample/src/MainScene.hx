@@ -46,7 +46,8 @@ class MainScene extends Scene {
         var skeletonData:SkeletonData = json.readSkeletonData("humanoid", Assets.getText("assets/humanoid.json"));
         
         skeleton = new SpinePunk(skeletonData);
-        
+        skeleton.skin = 'elf';
+
         // Define mixing between animations.
         var stateData = new AnimationStateData(skeletonData);
         /*stateData.setMixByName(an1, an2, 0);
@@ -64,7 +65,6 @@ class MainScene extends Scene {
         skeleton.stateData = stateData;
         skeleton.speed = 1;
         skeleton.scale = 1/HXP.screen.scale;
-        skeleton.skin = 'elf';
         
         //skeleton.updateWorldTransform();
         
