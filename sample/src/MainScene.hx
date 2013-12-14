@@ -24,7 +24,7 @@ import nme.display.FPS;
 #end
 
 class MainScene extends Scene {
-    static var animations=["stand", "walk", "walk", "run", "run", "jump", "draw weapon", "swing 1", "swing 2", "swing 3", "swing 1", "swing 2", "swing 3", "swing 1", "swing 1", "swing 2", "death", "revive"];
+    static var animations=["stand", "walk", "run", "jump", "draw weapon", "swing 1", "swing 2", "swing 3", "swing 1", "swing 1", "swing 2", "death", "revive"];
     var on=0;
     
     var atlas:TextureAtlas;
@@ -32,11 +32,13 @@ class MainScene extends Scene {
     var root_:Bone;
     var state:AnimationState;
     var lastTime:Float = 0.0;
-    var moveSpeed=75;
+    static var moveSpeed:Float=0;
     
     var mode:Int = 1;
         
     public override function begin() {
+        moveSpeed = 75 / HXP.screen.scale;
+        
         lastTime = haxe.Timer.stamp();
         
         atlas = TextureAtlas.create(Assets.getText("assets/humanoid.atlas"), "assets/", new BitmapDataTextureLoader());
@@ -55,13 +57,14 @@ class MainScene extends Scene {
         state = new AnimationState(stateData);
         state.setAnimationByName(animations[0], false);
         
-        skeleton.x = 150;
-        skeleton.y = 300;
+        skeleton.x = 50;
+        skeleton.y = HXP.screen.height/2/HXP.screen.scale;
         skeleton.flipY = true;
         skeleton.state = state;
         skeleton.stateData = stateData;
         skeleton.speed = 1;
-        skeleton.scale = 1;
+        skeleton.scale = 1/HXP.screen.scale;
+        skeleton.skin = 'elf';
         
         //skeleton.updateWorldTransform();
         

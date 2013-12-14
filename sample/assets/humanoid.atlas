@@ -5,98 +5,210 @@ filter: Nearest,Nearest
 repeat: none
 humanoid_armor_m_white
   rotate: false
-  xy: 340, 67
+  xy: 476, 49
   size: 66, 58
   orig: 66, 58
   offset: 0, 0
   index: -1
 humanoid_boots_brown
   rotate: false
-  xy: 340, 25
+  xy: 363, 5
   size: 65, 40
   orig: 65, 40
   offset: 0, 0
   index: -1
+humanoid_clothes_m_brown
+  rotate: false
+  xy: 127, 22
+  size: 66, 66
+  orig: 66, 66
+  offset: 0, 0
+  index: -1
+humanoid_elfear_elf
+  rotate: false
+  xy: 990, 169
+  size: 29, 37
+  orig: 29, 37
+  offset: 0, 0
+  index: -1
 humanoid_eyebrows_angry
   rotate: false
-  xy: 117, 25
+  xy: 652, 121
   size: 79, 15
   orig: 79, 15
   offset: 0, 0
   index: -1
 humanoid_eyes
   rotate: false
-  xy: 408, 68
+  xy: 694, 93
   size: 38, 26
   orig: 38, 26
   offset: 0, 0
   index: -1
 humanoid_eyes_closed
   rotate: false
-  xy: 117, 15
+  xy: 127, 2
   size: 50, 8
   orig: 50, 8
   offset: 0, 0
   index: -1
 humanoid_eyes_dead
   rotate: false
-  xy: 408, 96
+  xy: 600, 78
   size: 49, 29
   orig: 49, 29
   offset: 0, 0
   index: -1
+humanoid_goblin_eyes
+  rotate: false
+  xy: 869, 105
+  size: 38, 26
+  orig: 38, 26
+  offset: 0, 0
+  index: -1
+humanoid_goblin_mouth_stoic
+  rotate: false
+  xy: 544, 50
+  size: 53, 23
+  orig: 53, 23
+  offset: 0, 0
+  index: -1
+humanoid_goblinear_goblin
+  rotate: false
+  xy: 990, 208
+  size: 28, 43
+  orig: 28, 43
+  offset: 0, 0
+  index: -1
 humanoid_hair_m_1_brown
   rotate: false
-  xy: 117, 42
+  xy: 767, 168
   size: 125, 83
   orig: 125, 83
   offset: 0, 0
   index: -1
+humanoid_hair_m_2_brown
+  rotate: false
+  xy: 2, 2
+  size: 123, 86
+  orig: 123, 86
+  offset: 0, 0
+  index: -1
+humanoid_hair_m_shaved
+  rotate: false
+  xy: 767, 105
+  size: 100, 61
+  orig: 100, 61
+  offset: 0, 0
+  index: -1
 humanoid_hands_skin_pale
   rotate: false
-  xy: 198, 16
+  xy: 990, 143
   size: 29, 24
   orig: 29, 24
   offset: 0, 0
   index: -1
 humanoid_head_skin_pale
   rotate: false
-  xy: 2, 12
+  xy: 652, 138
   size: 113, 113
   orig: 113, 113
   offset: 0, 0
   index: -1
 humanoid_limb_segment
   rotate: false
-  xy: 407, 32
+  xy: 869, 133
   size: 20, 33
   orig: 20, 33
   offset: 0, 0
   index: -1
 humanoid_mouth_pursed
   rotate: false
-  xy: 57, 2
+  xy: 733, 128
   size: 31, 8
   orig: 31, 8
   offset: 0, 0
   index: -1
 humanoid_mouth_stoic
   rotate: false
-  xy: 2, 2
+  xy: 127, 12
   size: 53, 8
   orig: 53, 8
   offset: 0, 0
   index: -1
+humanoid_robe_red
+  rotate: false
+  xy: 363, 47
+  size: 69, 64
+  orig: 69, 64
+  offset: 0, 0
+  index: -1
+humanoid_shoes_brown
+  rotate: false
+  xy: 544, 75
+  size: 54, 32
+  orig: 54, 32
+  offset: 0, 0
+  index: -1
 humanoid_shoulder_white
   rotate: false
-  xy: 459, 92
+  xy: 652, 86
   size: 40, 33
   orig: 40, 33
   offset: 0, 0
   index: -1
-humanoid_weapon_sword_red
+humanoid_weapon_axe
   rotate: false
-  xy: 244, 18
+  xy: 497, 109
+  size: 153, 142
+  orig: 153, 142
+  offset: 0, 0
+  index: -1
+humanoid_weapon_club
+  rotate: false
+  xy: 176, 104
+  size: 156, 147
+  orig: 156, 147
+  offset: 0, 0
+  index: -1
+humanoid_weapon_giant_sword
+  rotate: false
+  xy: 334, 113
+  size: 161, 138
+  orig: 161, 138
+  offset: 0, 0
+  index: -1
+humanoid_weapon_knife
+  rotate: false
+  xy: 434, 50
+  size: 40, 61
+  orig: 40, 61
+  offset: 0, 0
+  index: -1
+humanoid_weapon_rapier
+  rotate: false
+  xy: 280, 7
+  size: 81, 95
+  orig: 81, 95
+  offset: 0, 0
+  index: -1
+humanoid_weapon_scimitar
+  rotate: false
+  xy: 195, 12
+  size: 83, 90
+  orig: 83, 90
+  offset: 0, 0
+  index: -1
+humanoid_weapon_spear
+  rotate: false
+  xy: 2, 90
+  size: 172, 161
+  orig: 172, 161
+  offset: 0, 0
+  index: -1
+humanoid_weapon_sword
+  rotate: false
+  xy: 894, 144
   size: 94, 107
   orig: 94, 107
   offset: 0, 0

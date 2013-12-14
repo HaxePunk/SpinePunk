@@ -2,10 +2,10 @@ import com.haxepunk.Engine;
 import com.haxepunk.HXP;
 import com.haxepunk.RenderMode;
 import flash.events.Event;
+import flash.display.BitmapData;
+import flash.geom.Point;
 
-class Main extends Engine
-{
-
+class Main extends Engine {
     public function new(width : Int=0, height : Int=0, frameRate : Float=60, fixed : Bool=false, ?renderMode : RenderMode) {
         super(width, height, frameRate, fixed, renderMode);
         //super(width, height, frameRate, fixed, RenderMode.BUFFER);
@@ -29,5 +29,4 @@ class Main extends Engine
     }
 
     public static function main() { new Main(); }
-
 }

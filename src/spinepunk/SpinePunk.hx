@@ -50,14 +50,6 @@ class SpinePunk extends Entity {
     public var wrapperAngles:ObjectMap<RegionAttachment, Float>;
     public var cachedSprites:ObjectMap<RegionAttachment, Image>;
     
-    /**
-     * Instantiate a new Spine Sprite.
-     * @param    skeletonData    Animation data from Spine (.json .skel .png), get it like this: FlxSpineSprite.readSkeletonData( "mySpriteData", "assets/" );
-     * @param    X                The initial X position of the sprite.
-     * @param    Y                The initial Y position of the sprite.
-     * @param    Width            The maximum width of this sprite (avoid very large sprites since they are performance intensive).
-     * @param    Height            The maximum height of this sprite (avoid very large sprites since they are performance intensive).
-     */
     public function new(skeletonData:SkeletonData) {
         super();
         
@@ -78,6 +70,12 @@ class SpinePunk extends Entity {
         wrapperAngles = new ObjectMap();
         
         //mask = new Masklist([]);
+    }
+    
+    public var skin(default, set):String;
+    function set_skin(skin:String) {
+        skeleton.setSkinByName(skin);
+        return this.skin = skin;
     }
     
     public var flipX(get, set):Bool;
