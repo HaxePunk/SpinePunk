@@ -185,10 +185,10 @@ class SpinePunk extends Entity {
                 wrapper.scaleY = (bone.worldScaleY + regionAttachment.scaleY - 1) * flipY * sy;
                 wrapper.render(target, point, camera);
                 
-                var wRect = new Rectangle(wrapper.x-wrapper.originX, 
-                                          wrapper.y-wrapper.originY, 
-                                          wrapper.width, wrapper.height);
-                
+                var wRect = new Rectangle(wrapper.x-wrapper.originX*scale, 
+                                          wrapper.y-wrapper.originY*scale, 
+                                          wrapper.width*scale, 
+                                          wrapper.height*scale);
                 if (_aabb.width == 0 && _aabb.height == 0) {
                     _aabb.copyFrom(wRect);
                 } else {
