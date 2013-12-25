@@ -31,6 +31,8 @@ import flash.geom.Rectangle;
 import flash.geom.Point;
 import flash.display.BitmapData;
 
+using Lambda;
+
 
 class SpinePunk extends Entity {
     public var skeleton:Skeleton;
@@ -50,6 +52,8 @@ class SpinePunk extends Entity {
     
     public var wrapperAngles:ObjectMap<RegionAttachment, Float>;
     public var cachedSprites:ObjectMap<RegionAttachment, Image>;
+    public var hitboxSlots:Array<String>;
+    public var hitboxes:Map<String, Rectangle>;
     
     public function new(skeletonData:SkeletonData) {
         super();
@@ -69,6 +73,8 @@ class SpinePunk extends Entity {
         
         cachedSprites = new ObjectMap();
         wrapperAngles = new ObjectMap();
+        hitboxSlots = new Array();
+        hitboxes = new Map();
         
         //mask = new Masklist([]);
     }
@@ -143,7 +149,7 @@ class SpinePunk extends Entity {
         var flipY:Int = (skeleton.flipY) ? 1 : -1;
         var flip:Int = flipX * flipY;
         
-        var _aabb = new Rectangle(0, 0, 0, 0);
+        var _aabb:Rectangle = null;
         
         var radians:Float = angle * HXP.RAD;
         var cos:Float = Math.cos(radians);
@@ -158,8 +164,8 @@ class SpinePunk extends Entity {
             var attachment:Attachment = slot.attachment;
             if (Std.is(attachment, RegionAttachment)) {
                 var regionAttachment:RegionAttachment = cast attachment;
-                regionAttachment.updateVertices(slot);
-                var vertices = regionAttachment.vertices;
+                //regionAttachment.updateVertices(slot);
+                //var vertices = regionAttachment.vertices;
                 var wrapper:Image = getImage(regionAttachment);
                 wrapper.color = color;
                 var wrapperAngle:Float = wrapperAngles.get(regionAttachment);
@@ -190,10 +196,17 @@ class SpinePunk extends Entity {
                                           wrapper.y-wrapper.originY*scale, 
                                           wrapper.width*scale, 
                                           wrapper.height*scale);
-                if (_aabb.width == 0 && _aabb.height == 0) {
-                    _aabb.copyFrom(wRect);
+                if (hitboxes.exists(slot.data.name)) {
+                    hitboxes[slot.data.name].copyFrom(wRect);
                 } else {
-                    _aabb = _aabb.union(wRect);
+                    hitboxes[slot.data.name] = wRect;
+                }
+                if (hitboxSlots.indexOf(slot.data.name) > -1) {
+                    if (_aabb == null) {
+                        _aabb = wRect;
+                    } else {
+                        _aabb = _aabb.union(wRect);
+                    }
                 }
                 
                 //cast(mask, Masklist).add(
@@ -201,9 +214,11 @@ class SpinePunk extends Entity {
             }
         }
         
-        _aabb.x -= x;
-        _aabb.y -= y;
-        setHitboxTo(_aabb);
+        if (_aabb != null) {
+            _aabb.x -= x;
+            _aabb.y -= y;
+            setHitboxTo(_aabb);
+        }
     }
     
     public function getImage(regionAttachment:RegionAttachment):Image {
