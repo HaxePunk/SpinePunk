@@ -2,6 +2,7 @@ package spinepunk;
 
 import openfl.Assets;
 import haxe.ds.ObjectMap;
+import haxe.ds.Vector;
 
 import com.haxepunk.HXP;
 import com.haxepunk.RenderMode;
@@ -12,19 +13,19 @@ import com.haxepunk.graphics.atlas.AtlasData;
 //import com.haxepunk.masks.Masklist;
 //import com.haxepunk.masks.Hitbox;
 
-import spinehx.Bone;
-import spinehx.Slot;
-import spinehx.Skeleton;
-import spinehx.SkeletonData;
-import spinehx.SkeletonJson;
-import spinehx.AnimationState;
-import spinehx.AnimationStateData;
-import spinehx.atlas.Texture;
-import spinehx.atlas.TextureAtlas;
-import spinehx.attachments.Attachment;
-import spinehx.attachments.RegionAttachment;
-import spinehx.platform.nme.BitmapDataTexture;
-import spinehx.platform.nme.BitmapDataTextureLoader;
+import spinehaxe.Bone;
+import spinehaxe.Slot;
+import spinehaxe.Skeleton;
+import spinehaxe.SkeletonData;
+import spinehaxe.SkeletonJson;
+import spinehaxe.animation.AnimationState;
+import spinehaxe.animation.AnimationStateData;
+import spinehaxe.atlas.Texture;
+import spinehaxe.atlas.TextureAtlas;
+import spinehaxe.attachments.Attachment;
+import spinehaxe.attachments.RegionAttachment;
+import spinehaxe.platform.nme.BitmapDataTexture;
+import spinehaxe.platform.nme.BitmapDataTextureLoader;
 
 import flash.geom.Rectangle;
 import flash.geom.Point;
@@ -61,10 +62,10 @@ class SpinePunk extends Entity {
         stateData = new AnimationStateData(skeletonData);
         state = new AnimationState(stateData);
         
-        skeleton = Skeleton.create(skeletonData);
-        skeleton.setX(0);
-        skeleton.setY(0);
-        skeleton.setFlipY(true);
+        skeleton = new Skeleton(skeletonData);
+        skeleton.x = 0;
+        skeleton.y = 0;
+        skeleton.flipY = true;
         
         cachedSprites = new ObjectMap();
         wrapperAngles = new ObjectMap();
@@ -75,7 +76,7 @@ class SpinePunk extends Entity {
     public var skin(default, set):String;
     function set_skin(skin:String) {
         if (skin != this.skin) {
-            skeleton.setSkinByName(skin);
+            skeleton.skinName = skin;
             skeleton.setToSetupPose();
         }
         return this.skin = skin;
@@ -89,7 +90,7 @@ class SpinePunk extends Entity {
     
     private function set_flipX(value:Bool):Bool {
         if (value != skeleton.flipX)
-            skeleton.setFlipX(value);
+            skeleton.flipX = value;
             
         return value;
     }
@@ -102,7 +103,7 @@ class SpinePunk extends Entity {
     
     private function set_flipY(value:Bool):Bool {
         if (value != skeleton.flipY)
-            skeleton.setFlipY(value);
+            skeleton.flipY = value;
             
         return value;
     }
@@ -113,12 +114,12 @@ class SpinePunk extends Entity {
      * @param    DataPath    The directory these files are located at
      * @param    Scale        Animation scale
      */
-    public static function readSkeletonData(DataName:String, DataPath:String, Scale:Float = 1):SkeletonData {
-        if (DataPath.lastIndexOf("/") < 0) DataPath += "/"; // append / at the end of the folder path
-        var spineAtlas:TextureAtlas = TextureAtlas.create(Assets.getText(DataPath + DataName + ".atlas"), DataPath, new BitmapDataTextureLoader());
+    public static function readSkeletonData(dataName:String, dataPath:String, scale:Float = 1):SkeletonData {
+        if (dataPath.lastIndexOf("/") < 0) dataPath += "/"; // append / at the end of the folder path
+        var spineAtlas:TextureAtlas = TextureAtlas.create(Assets.getText(dataPath + dataName + ".atlas"), dataPath, new BitmapDataTextureLoader());
         var json:SkeletonJson = SkeletonJson.create(spineAtlas);
-        json.setScale(Scale);
-        var skeletonData:SkeletonData = json.readSkeletonData(DataName, Assets.getText(DataPath + DataName + ".json"));
+        json.scale = scale;
+        var skeletonData:SkeletonData = json.readSkeletonData(dataName, Assets.getText(dataPath + dataName + ".json"));
         return skeletonData;
     }
     
@@ -158,13 +159,13 @@ class SpinePunk extends Entity {
             if (Std.is(attachment, RegionAttachment)) {
                 var regionAttachment:RegionAttachment = cast attachment;
                 regionAttachment.updateVertices(slot);
-                var vertices = regionAttachment.getVertices();
+                var vertices = regionAttachment.vertices;
                 var wrapper:Image = getImage(regionAttachment);
                 wrapper.color = color;
                 var wrapperAngle:Float = wrapperAngles.get(regionAttachment);
                 
-                var region:AtlasRegion = cast regionAttachment.getRegion();
-                var bone:Bone = slot.getBone();
+                var region:AtlasRegion = cast regionAttachment.region;
+                var bone:Bone = slot.bone;
                 var x:Float = regionAttachment.x - region.offsetX;
                 var y:Float = regionAttachment.y - region.offsetY;
                 
@@ -209,15 +210,15 @@ class SpinePunk extends Entity {
         if (cachedSprites.exists(regionAttachment))
             return cachedSprites.get(regionAttachment);
         
-        var region:AtlasRegion = cast regionAttachment.getRegion();
-        var texture:BitmapDataTexture = cast region.getTexture();
+        var region:AtlasRegion = cast regionAttachment.region;
+        var texture:BitmapDataTexture = cast region.texture;
         
         if (atlasData == null) {
             var cachedGraphic:BitmapData = texture.bd;
             atlasData = AtlasData.create(cachedGraphic);
         }
         
-        var rect = new Rectangle(region.getRegionX(), region.getRegionY(), region.getRegionWidth(), region.getRegionHeight());
+        var rect = new Rectangle(region.regionX, region.regionY, region.regionWidth, region.regionHeight);
         
         var wrapper:Image;
         
@@ -229,8 +230,8 @@ class SpinePunk extends Entity {
             wrapper = new Image(bd);
         }
         
-        wrapper.originX = region.getRegionWidth() / 2; // Registration point.
-        wrapper.originY = region.getRegionHeight() / 2;
+        wrapper.originX = region.regionWidth / 2; // Registration point.
+        wrapper.originY = region.regionHeight / 2;
         if (region.rotate) {
             wrapper.angle = -90;
         }
