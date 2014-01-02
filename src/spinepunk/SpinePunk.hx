@@ -34,19 +34,18 @@ import flash.display.BitmapData;
 using Lambda;
 
 
-class SpinePunk extends Entity {
+class SpinePunk extends Graphic {
     public var skeleton:Skeleton;
     public var skeletonData:SkeletonData;
     public var state:AnimationState;
     public var stateData:AnimationStateData;
     public var angle:Float=0;
-    public var scaleX:Float = 1;
-    public var scaleY:Float = 1;
-    public var scale:Float = 1;
-    public var scrollX:Float = 1;
-    public var scrollY:Float = 1;
-    public var speed:Float = 1;
-    public var color:Int = 0xffffff;
+    public var speed:Float=1;
+    public var color:Int=0xffffff;
+    public var mainHitbox:Rectangle;
+    public var scaleX:Float=1;
+    public var scaleY:Float=1;
+    public var scale:Float=1;
     
     public static var atlasData:AtlasData;
     
@@ -57,9 +56,6 @@ class SpinePunk extends Entity {
     
     public function new(skeletonData:SkeletonData) {
         super();
-        
-        width = 0;
-        height = 0;
         
         this.skeletonData = skeletonData;
         
@@ -75,6 +71,7 @@ class SpinePunk extends Entity {
         wrapperAngles = new ObjectMap();
         hitboxSlots = new Array();
         hitboxes = new Map();
+        mainHitbox = new Rectangle();
         
         //mask = new Masklist([]);
     }
@@ -137,13 +134,8 @@ class SpinePunk extends Entity {
         super.update();
     }
     
-    public override function render() {
-        _camera.x = _scene == null ? HXP.camera.x : _scene.camera.x;
-        _camera.y = _scene == null ? HXP.camera.y : _scene.camera.y;
-        renderGraphic((renderTarget != null) ? renderTarget : HXP.buffer, new Point(), _camera);
-    }
-    
-    public function renderGraphic(target, point:Point, camera:Point):Void {
+    public override function render(target:BitmapData, point:Point, camera:Point):Void {
+        var nullPoint = new Point(0,0);
         var drawOrder:Array<Slot> = skeleton.drawOrder;
         var flipX:Int = (skeleton.flipX) ? -1 : 1;
         var flipY:Int = (skeleton.flipY) ? 1 : -1;
@@ -156,7 +148,7 @@ class SpinePunk extends Entity {
         var sin:Float = Math.sin(radians);
         
         var oox:Float = 0;
-        var ooy:Float = -height/2;
+        var ooy:Float = -mainHitbox.height/2;
         
         //cast(mask, Masklist).removeAll();
         
@@ -184,13 +176,13 @@ class SpinePunk extends Entity {
                 var relX:Float = (dx * cos * sx - dy * sin * sy);
                 var relY:Float = (dx * sin * sx + dy * cos * sy);
                 
-                wrapper.x = this.x + relX;
-                wrapper.y = this.y + relY;
+                wrapper.x = point.x + this.x + relX;
+                wrapper.y = point.y + this.y + relY;
                 
                 wrapper.angle = ((bone.worldRotation + regionAttachment.rotation) + wrapperAngle) * flip + angle;
                 wrapper.scaleX = (bone.worldScaleX + regionAttachment.scaleX - 1) * flipX * sx;
                 wrapper.scaleY = (bone.worldScaleY + regionAttachment.scaleY - 1) * flipY * sy;
-                wrapper.render(target, point, camera);
+                wrapper.render(target, nullPoint, camera);
                 
                 var wRect = new Rectangle(wrapper.x-wrapper.originX*scale, 
                                           wrapper.y-wrapper.originY*scale, 
@@ -208,16 +200,13 @@ class SpinePunk extends Entity {
                         _aabb = _aabb.union(wRect);
                     }
                 }
-                
-                //cast(mask, Masklist).add(
-                //    new Hitbox(cast wRect.width, cast wRect.height, cast wRect.x, cast wRect.y));
             }
         }
         
         if (_aabb != null) {
-            _aabb.x -= x;
-            _aabb.y -= y;
-            setHitboxTo(_aabb);
+            _aabb.x -= point.x + this.x;
+            _aabb.y -= point.y + this.y;
+            mainHitbox = _aabb;
         }
     }
     
