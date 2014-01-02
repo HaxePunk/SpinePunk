@@ -193,7 +193,7 @@ class SpinePunk extends Graphic {
                 } else {
                     hitboxes[slot.data.name] = wRect;
                 }
-                if (hitboxSlots.indexOf(slot.data.name) > -1) {
+                if (hitboxSlots.has(slot.data.name)) {
                     if (_aabb == null) {
                         _aabb = wRect;
                     } else {
