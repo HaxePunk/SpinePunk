@@ -135,7 +135,12 @@ class SpinePunk extends Graphic {
     }
     
     public override function render(target:BitmapData, point:Point, camera:Point):Void {
-        var nullPoint = new Point(0,0);
+        var point = point.clone();
+        var camera = camera.clone();
+        
+        var nullPoint = HXP.point;
+        nullPoint.x = nullPoint.y = 0;
+        
         var drawOrder:Array<Slot> = skeleton.drawOrder;
         var flipX:Int = (skeleton.flipX) ? -1 : 1;
         var flipY:Int = (skeleton.flipY) ? 1 : -1;
@@ -222,7 +227,11 @@ class SpinePunk extends Graphic {
             atlasData = AtlasData.create(cachedGraphic);
         }
         
-        var rect = new Rectangle(region.regionX, region.regionY, region.regionWidth, region.regionHeight);
+        var rect = HXP.rect;
+        rect.x = region.regionX;
+        rect.y = region.regionY;
+        rect.width = region.regionWidth;
+        rect.height = region.regionHeight;
         
         var wrapper:Image;
         
@@ -230,7 +239,8 @@ class SpinePunk extends Graphic {
             wrapper = new Image(atlasData.createRegion(rect));
         } else {
             var bd = new BitmapData(cast rect.width, cast rect.height, true, 0);
-            bd.copyPixels(texture.bd, rect, new Point());
+            HXP.point.x = HXP.point.y = 0;
+            bd.copyPixels(texture.bd, rect, HXP.point);
             wrapper = new Image(bd);
         }
         
