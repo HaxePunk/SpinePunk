@@ -35,6 +35,8 @@ using Lambda;
 
 
 class SpinePunk extends Graphic {
+    public static var nullPoint:Point;
+    
     public var skeleton:Skeleton;
     public var skeletonData:SkeletonData;
     public var state:AnimationState;
@@ -138,7 +140,7 @@ class SpinePunk extends Graphic {
         var point = point.clone();
         var camera = camera.clone();
         
-        var nullPoint = HXP.point;
+        if (nullPoint == null) nullPoint = new Point();
         nullPoint.x = nullPoint.y = 0;
         
         var drawOrder:Array<Slot> = skeleton.drawOrder;
@@ -235,7 +237,7 @@ class SpinePunk extends Graphic {
         
         var wrapper:Image;
         
-        if (HXP.renderMode.has(RenderMode.HARDWARE)) {
+        if (HXP.renderMode == RenderMode.HARDWARE) {
             wrapper = new Image(atlasData.createRegion(rect));
         } else {
             var bd = new BitmapData(cast rect.width, cast rect.height, true, 0);
