@@ -191,15 +191,13 @@ class SpinePunk extends Graphic {
                 wrapper.scaleY = (bone.worldScaleY + regionAttachment.scaleY - 1) * flipY * sy;
                 wrapper.render(target, nullPoint, camera);
                 
-                var wRect = new Rectangle(wrapper.x-wrapper.originX*scale, 
-                                          wrapper.y-wrapper.originY*scale, 
-                                          wrapper.width*scale, 
-                                          wrapper.height*scale);
-                if (hitboxes.exists(slot.data.name)) {
-                    hitboxes[slot.data.name].copyFrom(wRect);
-                } else {
-                    hitboxes[slot.data.name] = wRect;
-                }
+                var wRect:Rectangle = (hitboxes.exists(slot.data.name)) ?
+                    hitboxes[slot.data.name] :
+                    (hitboxes[slot.data.name] = new Rectangle());
+                wRect.x = wrapper.x-wrapper.originX*scale;
+                wRect.y = wrapper.y-wrapper.originY*scale;
+                wRect.width = wrapper.width*scale;
+                wRect.height = wrapper.height*scale;
                 if (hitboxSlots.has(slot.data.name)) {
                     if (_aabb == null) {
                         _aabb = wRect;
