@@ -75,6 +75,8 @@ class SpinePunk extends Graphic {
         hitboxes = new Map();
         mainHitbox = new Rectangle();
         
+        _blit = HXP.renderMode != RenderMode.HARDWARE;
+        
         //mask = new Masklist([]);
     }
     
@@ -94,8 +96,10 @@ class SpinePunk extends Graphic {
     }
     
     private function set_flipX(value:Bool):Bool {
-        if (value != skeleton.flipX)
+        if (value != skeleton.flipX) {
             skeleton.flipX = value;
+            skeleton.updateWorldTransform();
+        }
             
         return value;
     }
@@ -107,8 +111,10 @@ class SpinePunk extends Graphic {
     }
     
     private function set_flipY(value:Bool):Bool {
-        if (value != skeleton.flipY)
+        if (value != skeleton.flipY) {
             skeleton.flipY = value;
+            skeleton.updateWorldTransform();
+        }
             
         return value;
     }
@@ -140,8 +146,7 @@ class SpinePunk extends Graphic {
         var point = point.clone();
         var camera = camera.clone();
         
-        if (nullPoint == null) nullPoint = new Point();
-        nullPoint.x = nullPoint.y = 0;
+        if (nullPoint == null) nullPoint = new Point(0,0);
         
         var drawOrder:Array<Slot> = skeleton.drawOrder;
         var flipX:Int = (skeleton.flipX) ? -1 : 1;
@@ -235,13 +240,13 @@ class SpinePunk extends Graphic {
         
         var wrapper:Image;
         
-        if (HXP.renderMode == RenderMode.HARDWARE) {
-            wrapper = new Image(atlasData.createRegion(rect));
-        } else {
+        if (_blit) {
             var bd = new BitmapData(cast rect.width, cast rect.height, true, 0);
             HXP.point.x = HXP.point.y = 0;
             bd.copyPixels(texture.bd, rect, HXP.point);
             wrapper = new Image(bd);
+        } else {
+            wrapper = new Image(atlasData.createRegion(rect));
         }
         
         wrapper.originX = region.regionWidth / 2; // Registration point.
