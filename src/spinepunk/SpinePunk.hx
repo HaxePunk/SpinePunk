@@ -199,10 +199,10 @@ class SpinePunk extends Graphic {
                 var wRect:Rectangle = (hitboxes.exists(slot.data.name)) ?
                     hitboxes[slot.data.name] :
                     (hitboxes[slot.data.name] = new Rectangle());
-                wRect.x = wrapper.x-wrapper.originX*scale;
-                wRect.y = wrapper.y-wrapper.originY*scale;
-                wRect.width = wrapper.width*scale;
-                wRect.height = wrapper.height*scale;
+                wRect.x = wrapper.x-(region.rotate ? wrapper.originY : wrapper.originX)*scale;
+                wRect.y = wrapper.y-(region.rotate ? wrapper.originX : wrapper.originY)*scale;
+                wRect.width = (region.rotate ? wrapper.height : wrapper.width)*scale;
+                wRect.height = (region.rotate ? wrapper.width : wrapper.height)*scale;
                 if (hitboxSlots.has(slot.data.name)) {
                     if (_aabb == null) {
                         _aabb = wRect;
