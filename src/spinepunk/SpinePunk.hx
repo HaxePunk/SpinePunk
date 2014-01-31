@@ -44,6 +44,7 @@ class SpinePunk extends Graphic {
     public var angle:Float=0;
     public var speed:Float=1;
     public var color:Int=0xffffff;
+    public var dynamicHitbox:Bool=true;
     public var mainHitbox:Rectangle;
     public var scaleX:Float=1;
     public var scaleY:Float=1;
@@ -56,7 +57,7 @@ class SpinePunk extends Graphic {
     public var hitboxSlots:Array<String>;
     public var hitboxes:Map<String, Rectangle>;
     
-    public function new(skeletonData:SkeletonData) {
+    public function new(skeletonData:SkeletonData, dynamicHitbox:Bool=true) {
         super();
         
         this.skeletonData = skeletonData;
@@ -73,6 +74,7 @@ class SpinePunk extends Graphic {
         wrapperAngles = new ObjectMap();
         hitboxSlots = new Array();
         hitboxes = new Map();
+        this.dynamicHitbox = dynamicHitbox;
         mainHitbox = new Rectangle();
         
         _blit = HXP.renderMode != RenderMode.HARDWARE;
@@ -213,7 +215,8 @@ class SpinePunk extends Graphic {
             }
         }
         
-        if (_aabb != null) {
+        if (_aabb != null && (dynamicHitbox || (mainHitbox.width==0 &&
+                                                mainHitbox.height==0))) {
             _aabb.x -= point.x + this.x;
             _aabb.y -= point.y + this.y;
             mainHitbox = _aabb;
