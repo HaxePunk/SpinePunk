@@ -163,6 +163,9 @@ class SpinePunk extends Graphic {
         
         var oox:Float = 0;
         var ooy:Float = -mainHitbox.height/2;
+        var sx = scaleX * scale;
+        var sy = scaleY * scale;
+                
         
         //cast(mask, Masklist).removeAll();
         
@@ -184,9 +187,6 @@ class SpinePunk extends Graphic {
                 var dx:Float = bone.worldX + x * bone.m00 + y * bone.m01 - oox;
                 var dy:Float = bone.worldY + x * bone.m10 + y * bone.m11 - ooy;
                 
-                var sx = scaleX * scale;
-                var sy = scaleY * scale;
-                
                 var relX:Float = (dx * cos * sx - dy * sin * sy);
                 var relY:Float = (dx * sin * sx + dy * cos * sy);
                 
@@ -203,13 +203,20 @@ class SpinePunk extends Graphic {
                     (hitboxes[slot.data.name] = new Rectangle());
                 wRect.x = wrapper.x-(region.rotate ? wrapper.originY : wrapper.originX)*scale;
                 wRect.y = wrapper.y-(region.rotate ? wrapper.originX : wrapper.originY)*scale;
-                wRect.width = (region.rotate ? wrapper.height : wrapper.width)*scale;
-                wRect.height = (region.rotate ? wrapper.width : wrapper.height)*scale;
+                wRect.width = (region.rotate ? wrapper.height : wrapper.width)*sx;
+                wRect.height = (region.rotate ? wrapper.width : wrapper.height)*sy;
                 if (hitboxSlots.has(slot.data.name)) {
                     if (_aabb == null) {
-                        _aabb = wRect;
+                        _aabb = wRect.clone();
                     } else {
-                        _aabb = _aabb.union(wRect);
+                        var x0 = _aabb.x > wRect.x ? wRect.x : _aabb.x;
+                        var x1 = _aabb.right < wRect.right ? wRect.right : _aabb.right;
+                        var y0 = _aabb.y > wRect.y ? wRect.y : _aabb.y;
+                        var y1 = _aabb.bottom < wRect.bottom ? wRect.bottom : _aabb.bottom;
+                        _aabb.left = x0;
+                        _aabb.top = y0;
+                        _aabb.width = x1 - x0;
+                        _aabb.height = y1 - y0;
                     }
                 }
             }
@@ -218,7 +225,7 @@ class SpinePunk extends Graphic {
         if (_aabb != null && (dynamicHitbox || (mainHitbox.width==0 &&
                                                 mainHitbox.height==0))) {
             _aabb.x -= point.x + this.x;
-            _aabb.y -= point.y + this.y;
+            _aabb.y -= point.y + this.y - (_aabb.height*sy/2);
             mainHitbox = _aabb;
         }
     }
