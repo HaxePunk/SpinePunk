@@ -59,7 +59,7 @@ class SpinePunk extends Graphic {
     
     var rect1:Rectangle;
     var rect2:Rectangle;
-    var firstFrame = false;
+    var firstFrame=true;
     
     public function new(skeletonData:SkeletonData, dynamicHitbox:Bool=true) {
         super();
