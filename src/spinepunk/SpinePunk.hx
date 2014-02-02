@@ -50,12 +50,16 @@ class SpinePunk extends Graphic {
     public var scaleY:Float=1;
     public var scale:Float=1;
     
-    public static var atlasData:AtlasData;
+    static var atlasData:AtlasData;
     
-    public var wrapperAngles:ObjectMap<RegionAttachment, Float>;
-    public var cachedSprites:ObjectMap<RegionAttachment, Image>;
+    var wrapperAngles:ObjectMap<RegionAttachment, Float>;
+    var cachedSprites:ObjectMap<RegionAttachment, Image>;
     public var hitboxSlots:Array<String>;
     public var hitboxes:Map<String, Rectangle>;
+    
+    var rect1:Rectangle;
+    var rect2:Rectangle;
+    var firstFrame = false;
     
     public function new(skeletonData:SkeletonData, dynamicHitbox:Bool=true) {
         super();
@@ -75,7 +79,9 @@ class SpinePunk extends Graphic {
         hitboxSlots = new Array();
         hitboxes = new Map();
         this.dynamicHitbox = dynamicHitbox;
-        mainHitbox = new Rectangle();
+        rect1 = new Rectangle();
+        rect2 = new Rectangle();
+        mainHitbox = rect1;
         
         _blit = HXP.renderMode != RenderMode.HARDWARE;
         
@@ -201,13 +207,17 @@ class SpinePunk extends Graphic {
                 var wRect:Rectangle = (hitboxes.exists(slot.data.name)) ?
                     hitboxes[slot.data.name] :
                     (hitboxes[slot.data.name] = new Rectangle());
-                wRect.x = wrapper.x-(region.rotate ? wrapper.originY : wrapper.originX)*scale;
-                wRect.y = wrapper.y-(region.rotate ? wrapper.originX : wrapper.originY)*scale;
+                wRect.x = wrapper.x-(region.rotate ? wrapper.originY : wrapper.originX)*sx;
+                wRect.y = wrapper.y-(region.rotate ? wrapper.originX : wrapper.originY)*sy;
                 wRect.width = (region.rotate ? wrapper.height : wrapper.width)*sx;
                 wRect.height = (region.rotate ? wrapper.width : wrapper.height)*sy;
                 if (hitboxSlots.has(slot.data.name)) {
                     if (_aabb == null) {
-                        _aabb = wRect.clone();
+                        _aabb = (mainHitbox == rect2 ? rect1 : rect2);
+                        _aabb.x = wRect.x;
+                        _aabb.y = wRect.y;
+                        _aabb.width = wRect.width;
+                        _aabb.height = wRect.height;
                     } else {
                         var x0 = _aabb.x > wRect.x ? wRect.x : _aabb.x;
                         var x1 = _aabb.right < wRect.right ? wRect.right : _aabb.right;
@@ -222,11 +232,12 @@ class SpinePunk extends Graphic {
             }
         }
         
-        if (_aabb != null && (dynamicHitbox || (mainHitbox.width==0 &&
-                                                mainHitbox.height==0))) {
+        if (_aabb != null && (dynamicHitbox || (firstFrame))) {
             _aabb.x -= point.x + this.x;
-            _aabb.y -= point.y + this.y - (_aabb.height*sy/2);
+            _aabb.y -= point.y + this.y;
+            if (firstFrame) _aabb.y += (_aabb.height*sy/2);
             mainHitbox = _aabb;
+            firstFrame = false;
         }
     }
     
