@@ -35,7 +35,9 @@ using Lambda;
 
 
 class SpinePunk extends Graphic {
-    public static var nullPoint:Point;
+    static var nullPoint:Point = new Point();
+    static var camera:Point = new Point();
+    static var point:Point = new Point();
     
     public var skeleton:Skeleton;
     public var skeletonData:SkeletonData;
@@ -151,10 +153,12 @@ class SpinePunk extends Graphic {
     }
     
     public override function render(target:BitmapData, point:Point, camera:Point):Void {
-        var point = point.clone();
-        var camera = camera.clone();
-        
-        if (nullPoint == null) nullPoint = new Point(0,0);
+        SpinePunk.point.x = point.x;
+        SpinePunk.point.y = point.y;
+        SpinePunk.camera.x = camera.x;
+        SpinePunk.camera.y = camera.y;
+        var point = SpinePunk.point;
+        var camera = SpinePunk.camera;
         
         var drawOrder:Array<Slot> = skeleton.drawOrder;
         var flipX:Int = (skeleton.flipX) ? -1 : 1;
