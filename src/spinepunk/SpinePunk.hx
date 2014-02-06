@@ -85,7 +85,7 @@ class SpinePunk extends Graphic {
         rect2 = new Rectangle();
         mainHitbox = rect1;
         
-        _blit = HXP.renderMode != RenderMode.HARDWARE;
+        blit = HXP.renderMode != RenderMode.HARDWARE;
         
         //mask = new Masklist([]);
     }
@@ -152,7 +152,15 @@ class SpinePunk extends Graphic {
         super.update();
     }
     
+    public override function renderAtlas(layer:Int, point:Point, camera:Point):Void {
+        draw(point, camera, layer);
+    }
+
     public override function render(target:BitmapData, point:Point, camera:Point):Void {
+        draw(point, camera, 0, target);
+    }
+    
+    function draw(point:Point, camera:Point, layer:Int=0, target:BitmapData=null):Void {
         SpinePunk.point.x = point.x;
         SpinePunk.point.y = point.y;
         SpinePunk.camera.x = camera.x;
@@ -206,7 +214,8 @@ class SpinePunk extends Graphic {
                 wrapper.angle = ((bone.worldRotation + regionAttachment.rotation) + wrapperAngle) * flip + angle;
                 wrapper.scaleX = (bone.worldScaleX + regionAttachment.scaleX - 1) * flipX * sx;
                 wrapper.scaleY = (bone.worldScaleY + regionAttachment.scaleY - 1) * flipY * sy;
-                wrapper.render(target, nullPoint, camera);
+                if (blit) wrapper.render(target, nullPoint, camera);
+                else wrapper.renderAtlas(layer, nullPoint, camera);
                 
                 var wRect:Rectangle = (hitboxes.exists(slot.data.name)) ?
                     hitboxes[slot.data.name] :
@@ -265,7 +274,7 @@ class SpinePunk extends Graphic {
         
         var wrapper:Image;
         
-        if (_blit) {
+        if (blit) {
             var bd = new BitmapData(cast rect.width, cast rect.height, true, 0);
             HXP.point.x = HXP.point.y = 0;
             bd.copyPixels(texture.bd, rect, HXP.point);
