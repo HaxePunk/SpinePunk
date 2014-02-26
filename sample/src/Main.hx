@@ -8,7 +8,6 @@ import flash.geom.Point;
 class Main extends Engine {
     public function new(width : Int=0, height : Int=0, frameRate : Float=60, fixed : Bool=false, ?renderMode : RenderMode) {
         super(width, height, frameRate, fixed, renderMode);
-        //super(width, height, frameRate, fixed, RenderMode.BUFFER);
     }
 
     override public function init()
@@ -16,17 +15,9 @@ class Main extends Engine {
 #if debug
         HXP.console.enable();
 #end
+        HXP.screen.color = 0x808080;
         HXP.scene = new MainScene();
-        
-        onResize();
-        HXP.stage.addEventListener(Event.RESIZE, onResize);
     }
     
-    function onResize(e:Event=null) {
-        HXP.screen.scaleX = 
-        HXP.screen.scaleY = 
-            (Math.min(HXP.screen.scaleX, HXP.screen.scaleY));
-    }
-
     public static function main() { new Main(); }
 }
