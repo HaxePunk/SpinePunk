@@ -90,6 +90,11 @@ class SpinePunk extends Graphic {
         //mask = new Masklist([]);
     }
     
+    public function resetHitbox() {
+        mainHitbox.width = mainHitbox.height = 0;
+        firstFrame = true;
+    }
+    
     public var skin(default, set):String;
     function set_skin(skin:String) {
         if (skin != this.skin) {
