@@ -35,10 +35,6 @@ using Lambda;
 
 
 class SpinePunk extends Graphic {
-    static var nullPoint:Point = new Point();
-    static var camera:Point = new Point();
-    static var point:Point = new Point();
-    
     public var skeleton:Skeleton;
     public var skeletonData:SkeletonData;
     public var state:AnimationState;
@@ -55,7 +51,7 @@ class SpinePunk extends Graphic {
     static var atlasData:AtlasData;
     
     var wrapperAngles:ObjectMap<RegionAttachment, Float>;
-    var cachedSprites:ObjectMap<RegionAttachment, Image>;
+    var cachedImages:ObjectMap<RegionAttachment, Image>;
     public var hitboxSlots:Array<String>;
     public var hitboxes:Map<String, Rectangle>;
     
@@ -76,7 +72,7 @@ class SpinePunk extends Graphic {
         skeleton.y = 0;
         skeleton.flipY = true;
         
-        cachedSprites = new ObjectMap();
+        cachedImages = new ObjectMap();
         wrapperAngles = new ObjectMap();
         hitboxSlots = new Array();
         hitboxes = new Map();
@@ -86,8 +82,6 @@ class SpinePunk extends Graphic {
         mainHitbox = rect1;
         
         blit = HXP.renderMode != RenderMode.HARDWARE;
-        
-        //mask = new Masklist([]);
     }
     
     public function resetHitbox() {
@@ -166,13 +160,6 @@ class SpinePunk extends Graphic {
     }
     
     function draw(point:Point, camera:Point, layer:Int=0, target:BitmapData=null):Void {
-        SpinePunk.point.x = point.x;
-        SpinePunk.point.y = point.y;
-        SpinePunk.camera.x = camera.x;
-        SpinePunk.camera.y = camera.y;
-        var point = SpinePunk.point;
-        var camera = SpinePunk.camera;
-        
         var drawOrder:Array<Slot> = skeleton.drawOrder;
         var flipX:Int = (skeleton.flipX) ? -1 : 1;
         var flipY:Int = (skeleton.flipY) ? 1 : -1;
@@ -188,39 +175,45 @@ class SpinePunk extends Graphic {
         var ooy:Float = -mainHitbox.height/2;
         var sx = scaleX * scale;
         var sy = scaleY * scale;
-                
         
-        //cast(mask, Masklist).removeAll();
+        var attachment:Attachment;
+        var regionAttachment:RegionAttachment;
+        var wrapper:Image;
+        var wrapperAngle:Float;
+        var region:AtlasRegion;
+        var bone:Bone;
+        var dx:Float, dy:Float;
+        var relX:Float, relY:Float;
+        var rx:Float, ry:Float;
         
         for (slot in drawOrder)  {
-            var attachment:Attachment = slot.attachment;
+            attachment = slot.attachment;
             if (Std.is(attachment, RegionAttachment)) {
-                var regionAttachment:RegionAttachment = cast attachment;
-                //regionAttachment.updateVertices(slot);
-                //var vertices = regionAttachment.vertices;
-                var wrapper:Image = getImage(regionAttachment);
+                regionAttachment = cast attachment;
+                
+                wrapper = getImage(regionAttachment);
                 wrapper.color = color;
-                var wrapperAngle:Float = wrapperAngles.get(regionAttachment);
+                wrapperAngle = wrapperAngles.get(regionAttachment);
                 
-                var region:AtlasRegion = cast regionAttachment.region;
-                var bone:Bone = slot.bone;
-                var x:Float = regionAttachment.x - region.offsetX;
-                var y:Float = regionAttachment.y - region.offsetY;
+                region = cast regionAttachment.region;
+                bone = slot.bone;
+                rx = regionAttachment.x;// + region.offsetX;
+                ry = regionAttachment.y;// + region.offsetY;
                 
-                var dx:Float = bone.worldX + x * bone.m00 + y * bone.m01 - oox;
-                var dy:Float = bone.worldY + x * bone.m10 + y * bone.m11 - ooy;
+                dx = bone.worldX + rx * bone.m00 + ry * bone.m01 - oox;
+                dy = bone.worldY + rx * bone.m10 + ry * bone.m11 - ooy;
                 
-                var relX:Float = (dx * cos * sx - dy * sin * sy);
-                var relY:Float = (dx * sin * sx + dy * cos * sy);
+                relX = (dx * cos * sx - dy * sin * sy);
+                relY = (dx * sin * sx + dy * cos * sy);
                 
-                wrapper.x = point.x + this.x + relX;
-                wrapper.y = point.y + this.y + relY;
+                wrapper.x = x + relX;
+                wrapper.y = y + relY;
                 
                 wrapper.angle = ((bone.worldRotation + regionAttachment.rotation) + wrapperAngle) * flip + angle;
                 wrapper.scaleX = (bone.worldScaleX + regionAttachment.scaleX - 1) * flipX * sx;
                 wrapper.scaleY = (bone.worldScaleY + regionAttachment.scaleY - 1) * flipY * sy;
-                if (blit) wrapper.render(target, nullPoint, camera);
-                else wrapper.renderAtlas(layer, nullPoint, camera);
+                if (blit) wrapper.render(target, point, camera);
+                else wrapper.renderAtlas(layer, point, camera);
                 
                 var wRect:Rectangle = (hitboxes.exists(slot.data.name)) ?
                     hitboxes[slot.data.name] :
@@ -251,8 +244,8 @@ class SpinePunk extends Graphic {
         }
         
         if (_aabb != null && (dynamicHitbox || (firstFrame))) {
-            _aabb.x -= point.x + this.x;
-            _aabb.y -= point.y + this.y;
+            _aabb.x -= x;
+            _aabb.y -= y;
             if (firstFrame) _aabb.y += (_aabb.height*sy/2);
             mainHitbox = _aabb;
             firstFrame = false;
@@ -260,8 +253,8 @@ class SpinePunk extends Graphic {
     }
     
     public function getImage(regionAttachment:RegionAttachment):Image {
-        if (cachedSprites.exists(regionAttachment))
-            return cachedSprites.get(regionAttachment);
+        if (cachedImages.exists(regionAttachment))
+            return cachedImages.get(regionAttachment);
         
         var region:AtlasRegion = cast regionAttachment.region;
         var texture:BitmapDataTexture = cast region.texture;
@@ -294,7 +287,7 @@ class SpinePunk extends Graphic {
             wrapper.angle = -90;
         }
         
-        cachedSprites.set(regionAttachment, wrapper);
+        cachedImages.set(regionAttachment, wrapper);
         wrapperAngles.set(regionAttachment, wrapper.angle);
         
         return wrapper;
