@@ -10,8 +10,6 @@ import com.haxepunk.Entity;
 import com.haxepunk.Graphic;
 import com.haxepunk.graphics.Image;
 import com.haxepunk.graphics.atlas.AtlasData;
-//import com.haxepunk.masks.Masklist;
-//import com.haxepunk.masks.Hitbox;
 
 import spinehaxe.Bone;
 import spinehaxe.Slot;
@@ -36,6 +34,8 @@ using Lambda;
 
 class SpinePunk extends Graphic {
     static var atlasDataMap:Map<String, AtlasData> = new Map();
+    static var p:Point = new Point();
+    static var c:Point = new Point();
     
     public var hitboxSlots:Array<String>;
     public var hitboxes:Map<String, Rectangle>;
@@ -167,6 +167,10 @@ class SpinePunk extends Graphic {
     }
     
     function draw(point:Point, camera:Point, layer:Int=0, target:BitmapData=null):Void {
+        p.x = point.x; p.y = point.y;
+        var point = p;
+        c.x = camera.x; c.y = camera.y;
+        var camera = c;
         var drawOrder:Array<Slot> = skeleton.drawOrder;
         var flipX:Int = (skeleton.flipX) ? -1 : 1;
         var flipY:Int = (skeleton.flipY) ? 1 : -1;
@@ -292,7 +296,7 @@ class SpinePunk extends Graphic {
         
         wrapper.smooth = smooth;
         
-        wrapper.originX = region.regionWidth / 2; // Registration point.
+        wrapper.originX = region.regionWidth / 2;
         wrapper.originY = region.regionHeight / 2;
         if (region.rotate) {
             wrapper.angle = -90;
