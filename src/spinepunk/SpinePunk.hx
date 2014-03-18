@@ -35,6 +35,11 @@ using Lambda;
 
 
 class SpinePunk extends Graphic {
+    static var atlasDataMap:Map<String, AtlasData> = new Map();
+    
+    public var hitboxSlots:Array<String>;
+    public var hitboxes:Map<String, Rectangle>;
+    
     public var skeleton:Skeleton;
     public var skeletonData:SkeletonData;
     public var state:AnimationState;
@@ -47,22 +52,21 @@ class SpinePunk extends Graphic {
     public var scaleX:Float=1;
     public var scaleY:Float=1;
     public var scale:Float=1;
+    public var smooth=true;
     
-    static var atlasData:AtlasData;
-    
-    var wrapperAngles:ObjectMap<RegionAttachment, Float>;
-    var cachedImages:ObjectMap<RegionAttachment, Image>;
-    public var hitboxSlots:Array<String>;
-    public var hitboxes:Map<String, Rectangle>;
-    
+    var name:String;
     var rect1:Rectangle;
     var rect2:Rectangle;
     var firstFrame=true;
     
-    public function new(skeletonData:SkeletonData, dynamicHitbox:Bool=true) {
+    var wrapperAngles:ObjectMap<RegionAttachment, Float>;
+    var cachedImages:ObjectMap<RegionAttachment, Image>;
+    
+    public function new(skeletonData:SkeletonData, dynamicHitbox:Bool=true, smooth=true) {
         super();
         
         this.skeletonData = skeletonData;
+        name = skeletonData.toString();
         
         stateData = new AnimationStateData(skeletonData);
         state = new AnimationState(stateData);
@@ -76,10 +80,13 @@ class SpinePunk extends Graphic {
         wrapperAngles = new ObjectMap();
         hitboxSlots = new Array();
         hitboxes = new Map();
+        
         this.dynamicHitbox = dynamicHitbox;
         rect1 = new Rectangle();
         rect2 = new Rectangle();
         mainHitbox = rect1;
+        
+        this.smooth = smooth;
         
         blit = HXP.renderMode != RenderMode.HARDWARE;
     }
@@ -259,9 +266,11 @@ class SpinePunk extends Graphic {
         var region:AtlasRegion = cast regionAttachment.region;
         var texture:BitmapDataTexture = cast region.texture;
         
+        var atlasData = atlasDataMap[name];
         if (atlasData == null) {
             var cachedGraphic:BitmapData = texture.bd;
             atlasData = AtlasData.create(cachedGraphic);
+            atlasDataMap[name] = atlasData;
         }
         
         var rect = HXP.rect;
@@ -280,6 +289,8 @@ class SpinePunk extends Graphic {
         } else {
             wrapper = new Image(atlasData.createRegion(rect));
         }
+        
+        wrapper.smooth = smooth;
         
         wrapper.originX = region.regionWidth / 2; // Registration point.
         wrapper.originY = region.regionHeight / 2;
