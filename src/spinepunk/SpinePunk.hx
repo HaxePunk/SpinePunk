@@ -182,8 +182,6 @@ class SpinePunk extends Graphic {
         var cos:Float = Math.cos(radians);
         var sin:Float = Math.sin(radians);
         
-        var oox:Float = 0;
-        var ooy:Float = -mainHitbox.height/2;
         var sx = scaleX * scale;
         var sy = scaleY * scale;
         
@@ -211,8 +209,8 @@ class SpinePunk extends Graphic {
                 rx = regionAttachment.x;// + region.offsetX;
                 ry = regionAttachment.y;// + region.offsetY;
                 
-                dx = bone.worldX + rx * bone.m00 + ry * bone.m01 - oox;
-                dy = bone.worldY + rx * bone.m10 + ry * bone.m11 - ooy;
+                dx = bone.worldX + rx * bone.m00 + ry * bone.m01;
+                dy = bone.worldY + rx * bone.m10 + ry * bone.m11;
                 
                 relX = (dx * cos * sx - dy * sin * sy);
                 relY = (dx * sin * sx + dy * cos * sy);
@@ -254,10 +252,9 @@ class SpinePunk extends Graphic {
             }
         }
         
-        if (_aabb != null && (dynamicHitbox || (firstFrame))) {
+        if (_aabb != null && (dynamicHitbox || firstFrame)) {
             _aabb.x -= x;
             _aabb.y -= y;
-            if (firstFrame) _aabb.y += (_aabb.height*sy/2);
             mainHitbox = _aabb;
             firstFrame = false;
         }
