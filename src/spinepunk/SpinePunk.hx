@@ -68,7 +68,7 @@ class SpinePunk extends Graphic {
         this.skeletonData = skeletonData;
         name = skeletonData.toString();
         
-        stateData = new AnimationStateData(skeletonData);
+        if (stateData == null) stateData = new AnimationStateData(skeletonData);
         state = new AnimationState(stateData);
         
         skeleton = new Skeleton(skeletonData);
