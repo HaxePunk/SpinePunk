@@ -270,7 +270,7 @@ class SpinePunk extends Graphic {
         var atlasData = atlasDataMap[name];
         if (atlasData == null) {
             var cachedGraphic:BitmapData = texture.bd;
-            atlasData = AtlasData.create(cachedGraphic);
+            atlasData = new AtlasData(cachedGraphic);
             atlasDataMap[name] = atlasData;
         }
         
