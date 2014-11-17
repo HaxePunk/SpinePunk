@@ -18,12 +18,13 @@ import spinehaxe.SkeletonData;
 import spinehaxe.SkeletonJson;
 import spinehaxe.animation.AnimationState;
 import spinehaxe.animation.AnimationStateData;
-import spinehaxe.atlas.Texture;
-import spinehaxe.atlas.TextureAtlas;
+import spinehaxe.atlas.Atlas;
+import spinehaxe.atlas.AtlasRegion;
 import spinehaxe.attachments.Attachment;
 import spinehaxe.attachments.RegionAttachment;
-import spinehaxe.platform.nme.BitmapDataTexture;
-import spinehaxe.platform.nme.BitmapDataTextureLoader;
+import spinehaxe.attachments.AtlasAttachmentLoader;
+import spinehaxe.platform.openfl.BitmapDataTexture;
+import spinehaxe.platform.openfl.BitmapDataTextureLoader;
 
 import flash.geom.Rectangle;
 import flash.geom.Point;
@@ -143,8 +144,8 @@ class SpinePunk extends Graphic {
      */
     public static function readSkeletonData(dataName:String, dataPath:String, scale:Float = 1):SkeletonData {
         if (dataPath.lastIndexOf("/") < 0) dataPath += "/"; // append / at the end of the folder path
-        var spineAtlas:TextureAtlas = TextureAtlas.create(Assets.getText(dataPath + dataName + ".atlas"), dataPath, new BitmapDataTextureLoader());
-        var json:SkeletonJson = SkeletonJson.create(spineAtlas);
+        var spineAtlas:Atlas = new Atlas(Assets.getText(dataPath + dataName + ".atlas"), new BitmapDataTextureLoader(dataPath));
+        var json:SkeletonJson = new SkeletonJson(new AtlasAttachmentLoader(spineAtlas));
         json.scale = scale;
         var skeletonData:SkeletonData = json.readSkeletonData(dataName, Assets.getText(dataPath + dataName + ".json"));
         return skeletonData;
@@ -204,7 +205,7 @@ class SpinePunk extends Graphic {
                 wrapper.color = color;
                 wrapperAngle = wrapperAngles.get(regionAttachment);
                 
-                region = cast regionAttachment.region;
+                region = cast regionAttachment.rendererObject;
                 bone = slot.bone;
                 rx = regionAttachment.x;// + region.offsetX;
                 ry = regionAttachment.y;// + region.offsetY;
@@ -264,28 +265,28 @@ class SpinePunk extends Graphic {
         if (cachedImages.exists(regionAttachment))
             return cachedImages.get(regionAttachment);
         
-        var region:AtlasRegion = cast regionAttachment.region;
-        var texture:BitmapDataTexture = cast region.texture;
+        var region:AtlasRegion = cast regionAttachment.rendererObject;
+        var texture:BitmapData = cast region.page.rendererObject;
         
         var atlasData = atlasDataMap[name];
         if (atlasData == null) {
-            var cachedGraphic:BitmapData = texture.bd;
+            var cachedGraphic:BitmapData = texture;
             atlasData = new AtlasData(cachedGraphic);
             atlasDataMap[name] = atlasData;
         }
         
         var rect = HXP.rect;
-        rect.x = region.regionX;
-        rect.y = region.regionY;
-        rect.width = region.regionWidth;
-        rect.height = region.regionHeight;
+        rect.x = region.x;
+        rect.y = region.y;
+        rect.width = region.width;
+        rect.height = region.height;
         
         var wrapper:Image;
         
         if (blit) {
             var bd = new BitmapData(cast rect.width, cast rect.height, true, 0);
             HXP.point.x = HXP.point.y = 0;
-            bd.copyPixels(texture.bd, rect, HXP.point);
+            bd.copyPixels(texture, rect, HXP.point);
             wrapper = new Image(bd);
         } else {
             wrapper = new Image(atlasData.createRegion(rect));
@@ -293,8 +294,8 @@ class SpinePunk extends Graphic {
         
         wrapper.smooth = smooth;
         
-        wrapper.originX = region.regionWidth / 2;
-        wrapper.originY = region.regionHeight / 2;
+        wrapper.originX = region.width / 2;
+        wrapper.originY = region.height / 2;
         if (region.rotate) {
             wrapper.angle = -90;
         }
