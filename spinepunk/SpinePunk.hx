@@ -23,7 +23,6 @@ import spinehaxe.atlas.AtlasRegion;
 import spinehaxe.attachments.Attachment;
 import spinehaxe.attachments.RegionAttachment;
 import spinehaxe.attachments.AtlasAttachmentLoader;
-import spinehaxe.platform.openfl.BitmapDataTexture;
 import spinehaxe.platform.openfl.BitmapDataTextureLoader;
 
 import flash.geom.Rectangle;
@@ -63,7 +62,7 @@ class SpinePunk extends Graphic {
     var wrapperAngles:ObjectMap<RegionAttachment, Float>;
     var cachedImages:ObjectMap<RegionAttachment, Image>;
     
-    public function new(skeletonData:SkeletonData, dynamicHitbox:Bool=true, smooth=true) {
+    public function new(skeletonData:SkeletonData, dynamicHitbox:Bool=true, smooth:Bool=true) {
         super();
         
         this.skeletonData = skeletonData;
@@ -147,7 +146,7 @@ class SpinePunk extends Graphic {
         var spineAtlas:Atlas = new Atlas(Assets.getText(dataPath + dataName + ".atlas"), new BitmapDataTextureLoader(dataPath));
         var json:SkeletonJson = new SkeletonJson(new AtlasAttachmentLoader(spineAtlas));
         json.scale = scale;
-        var skeletonData:SkeletonData = json.readSkeletonData(dataName, Assets.getText(dataPath + dataName + ".json"));
+        var skeletonData:SkeletonData = json.readSkeletonData(Assets.getText(dataPath + dataName + ".json"), dataName);
         return skeletonData;
     }
     
