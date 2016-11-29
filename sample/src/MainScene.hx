@@ -1,7 +1,7 @@
-import com.haxepunk.HXP;
-import com.haxepunk.Entity;
-import com.haxepunk.Scene;
-import com.haxepunk.utils.Input;
+import haxepunk.HXP;
+import haxepunk.Entity;
+import haxepunk.Scene;
+import haxepunk.utils.Input;
 import spinehaxe.SkeletonData;
 import spinehaxe.Bone;
 import spinehaxe.animation.AnimationState;

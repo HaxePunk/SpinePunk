@@ -1,6 +1,6 @@
-import com.haxepunk.Engine;
-import com.haxepunk.HXP;
-import com.haxepunk.RenderMode;
+import haxepunk.Engine;
+import haxepunk.HXP;
+import haxepunk.RenderMode;
 import flash.events.Event;
 import flash.display.BitmapData;
 import flash.geom.Point;

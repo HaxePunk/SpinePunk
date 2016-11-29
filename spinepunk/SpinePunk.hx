@@ -1,16 +1,20 @@
 package spinepunk;
 
-import openfl.Assets;
 import haxe.ds.ObjectMap;
 import haxe.ds.Vector;
-
-import com.haxepunk.HXP;
-import com.haxepunk.RenderMode;
-import com.haxepunk.Entity;
-import com.haxepunk.Graphic;
-import com.haxepunk.graphics.Image;
-import com.haxepunk.graphics.atlas.AtlasData;
-
+import flash.display.BitmapData;
+import flash.geom.Matrix;
+import flash.geom.Point;
+import flash.geom.Rectangle;
+import openfl.Assets;
+import haxepunk.HXP;
+import haxepunk.Camera;
+import haxepunk.RenderMode;
+import haxepunk.Entity;
+import haxepunk.Graphic;
+import haxepunk.graphics.Image;
+import haxepunk.graphics.atlas.AtlasData;
+import haxepunk.utils.MathUtil;
 import spinehaxe.Bone;
 import spinehaxe.Slot;
 import spinehaxe.Skeleton;
@@ -25,283 +29,265 @@ import spinehaxe.attachments.RegionAttachment;
 import spinehaxe.attachments.AtlasAttachmentLoader;
 import spinehaxe.platform.openfl.BitmapDataTextureLoader;
 
-import flash.geom.Rectangle;
-import flash.geom.Point;
-import flash.display.BitmapData;
-
 using Lambda;
 
+@:access(haxepunk.graphics.Image)
+class SpinePunk extends Graphic
+{
+	static var atlasDataMap:Map<String, AtlasData> = new Map();
+	static var p:Point = new Point();
 
-class SpinePunk extends Graphic {
-    static var atlasDataMap:Map<String, AtlasData> = new Map();
-    static var p:Point = new Point();
-    static var c:Point = new Point();
-    
-    public var hitboxSlots:Array<String>;
-    public var hitboxes:Map<String, Rectangle>;
-    
-    public var skeleton:Skeleton;
-    public var skeletonData:SkeletonData;
-    public var state:AnimationState;
-    public var stateData:AnimationStateData;
-    public var angle:Float=0;
-    public var speed:Float=1;
-    public var color:Int=0xffffff;
-    public var dynamicHitbox:Bool=true;
-    public var mainHitbox:Rectangle;
-    public var scaleX:Float=1;
-    public var scaleY:Float=1;
-    public var scale:Float=1;
-    public var smooth=true;
-    
-    var name:String;
-    var rect1:Rectangle;
-    var rect2:Rectangle;
-    var firstFrame=true;
-    
-    var wrapperAngles:ObjectMap<RegionAttachment, Float>;
-    var cachedImages:ObjectMap<RegionAttachment, Image>;
-    
-    public function new(skeletonData:SkeletonData, dynamicHitbox:Bool=true, smooth:Bool=true) {
-        super();
-        
-        this.skeletonData = skeletonData;
-        name = skeletonData.toString();
-        
-        if (stateData == null) stateData = new AnimationStateData(skeletonData);
-        state = new AnimationState(stateData);
-        
-        skeleton = new Skeleton(skeletonData);
-        skeleton.x = 0;
-        skeleton.y = 0;
-        skeleton.flipY = true;
-        
-        cachedImages = new ObjectMap();
-        wrapperAngles = new ObjectMap();
-        hitboxSlots = new Array();
-        hitboxes = new Map();
-        
-        this.dynamicHitbox = dynamicHitbox;
-        rect1 = new Rectangle();
-        rect2 = new Rectangle();
-        mainHitbox = rect1;
-        
-        this.smooth = smooth;
-        
-        blit = HXP.renderMode != RenderMode.HARDWARE;
-    }
-    
-    public function resetHitbox() {
-        mainHitbox.width = mainHitbox.height = 0;
-        firstFrame = true;
-    }
-    
-    public var skin(default, set):String;
-    function set_skin(skin:String) {
-        if (skin != this.skin) {
-            skeleton.skinName = skin;
-            skeleton.setToSetupPose();
-        }
-        return this.skin = skin;
-    }
-    
-    public var flipX(get, set):Bool;
-    
-    private function get_flipX():Bool {
-        return skeleton.flipX;
-    }
-    
-    private function set_flipX(value:Bool):Bool {
-        if (value != skeleton.flipX) {
-            skeleton.flipX = value;
-            skeleton.updateWorldTransform();
-        }
-            
-        return value;
-    }
-    
-    public var flipY(get, set):Bool;
-    
-    private function get_flipY():Bool {
-        return skeleton.flipY;
-    }
-    
-    private function set_flipY(value:Bool):Bool {
-        if (value != skeleton.flipY) {
-            skeleton.flipY = value;
-            skeleton.updateWorldTransform();
-        }
-            
-        return value;
-    }
-    
-    /**
-     * Get Spine animation data.
-     * @param    DataName    The name of the animation data files exported from Spine (.atlas .json .png).
-     * @param    DataPath    The directory these files are located at
-     * @param    Scale        Animation scale
-     */
-    public static function readSkeletonData(dataName:String, dataPath:String, scale:Float = 1):SkeletonData {
-        if (dataPath.lastIndexOf("/") < 0) dataPath += "/"; // append / at the end of the folder path
-        var spineAtlas:Atlas = new Atlas(Assets.getText(dataPath + dataName + ".atlas"), new BitmapDataTextureLoader(dataPath));
-        var json:SkeletonJson = new SkeletonJson(new AtlasAttachmentLoader(spineAtlas));
-        json.scale = scale;
-        var skeletonData:SkeletonData = json.readSkeletonData(Assets.getText(dataPath + dataName + ".json"), dataName);
-        return skeletonData;
-    }
-    
-    public override function update():Void {
-        state.update(HXP.elapsed*speed);
-        state.apply(skeleton);
-        skeleton.updateWorldTransform();
-        
-        super.update();
-    }
-    
-    public override function renderAtlas(layer:Int, point:Point, camera:Point):Void {
-        draw(point, camera, layer);
-    }
+	public var skeleton:Skeleton;
+	public var skeletonData:SkeletonData;
+	public var state:AnimationState;
+	public var stateData:AnimationStateData;
+	public var angle:Float = 0;
+	public var speed:Float = 1;
+	public var color:Int = 0xffffff;
+	public var alpha:Float = 1;
+	public var scaleX:Float = 1;
+	public var scaleY:Float = 1;
+	public var scale:Float = 1;
+	public var smooth = true;
+	
+	var name:String;
+	var firstFrame = true;
+	
+	var cachedImages:ObjectMap<RegionAttachment, Image>;
+	
+	public function new(skeletonData:SkeletonData, smooth:Bool=true)
+	{
+		super();
+		
+		this.skeletonData = skeletonData;
+		name = skeletonData.toString();
+		
+		if (stateData == null) stateData = new AnimationStateData(skeletonData);
+		state = new AnimationState(stateData);
+		
+		skeleton = new Skeleton(skeletonData);
+		skeleton.x = 0;
+		skeleton.y = 0;
+		skeleton.flipY = true;
+		
+		cachedImages = new ObjectMap();
 
-    public override function render(target:BitmapData, point:Point, camera:Point):Void {
-        draw(point, camera, 0, target);
-    }
-    
-    function draw(point:Point, camera:Point, layer:Int=0, target:BitmapData=null):Void {
-        p.x = point.x; p.y = point.y;
-        var point = p;
-        c.x = camera.x; c.y = camera.y;
-        var camera = c;
-        var drawOrder:Array<Slot> = skeleton.drawOrder;
-        var flipX:Int = (skeleton.flipX) ? -1 : 1;
-        var flipY:Int = (skeleton.flipY) ? 1 : -1;
-        var flip:Int = flipX * flipY;
-        
-        var _aabb:Rectangle = null;
-        
-        var radians:Float = angle * HXP.RAD;
-        var cos:Float = Math.cos(radians);
-        var sin:Float = Math.sin(radians);
-        
-        var sx = scaleX * scale;
-        var sy = scaleY * scale;
-        
-        var attachment:Attachment;
-        var regionAttachment:RegionAttachment;
-        var wrapper:Image;
-        var wrapperAngle:Float;
-        var region:AtlasRegion;
-        var bone:Bone;
-        var dx:Float, dy:Float;
-        var relX:Float, relY:Float;
-        var rx:Float, ry:Float;
-        
-        for (slot in drawOrder)  {
-            attachment = slot.attachment;
-            if (Std.is(attachment, RegionAttachment)) {
-                regionAttachment = cast attachment;
-                
-                wrapper = getImage(regionAttachment);
-                wrapper.color = color;
-                wrapperAngle = wrapperAngles.get(regionAttachment);
-                
-                region = cast regionAttachment.rendererObject;
-                bone = slot.bone;
-                rx = regionAttachment.x;// + region.offsetX;
-                ry = regionAttachment.y;// + region.offsetY;
-                
-                dx = bone.worldX + rx * bone.m00 + ry * bone.m01;
-                dy = bone.worldY + rx * bone.m10 + ry * bone.m11;
-                
-                relX = (dx * cos * sx - dy * sin * sy);
-                relY = (dx * sin * sx + dy * cos * sy);
-                
-                wrapper.x = x + relX;
-                wrapper.y = y + relY;
-                
-                wrapper.angle = ((bone.worldRotation + regionAttachment.rotation) + wrapperAngle) * flip + angle;
-                wrapper.scaleX = (bone.worldScaleX + regionAttachment.scaleX - 1) * flipX * sx;
-                wrapper.scaleY = (bone.worldScaleY + regionAttachment.scaleY - 1) * flipY * sy;
-                if (blit) wrapper.render(target, point, camera);
-                else wrapper.renderAtlas(layer, point, camera);
-                
-                var wRect:Rectangle = (hitboxes.exists(slot.data.name)) ?
-                    hitboxes[slot.data.name] :
-                    (hitboxes[slot.data.name] = new Rectangle());
-                wRect.x = wrapper.x-(region.rotate ? wrapper.originY : wrapper.originX)*sx;
-                wRect.y = wrapper.y-(region.rotate ? wrapper.originX : wrapper.originY)*sy;
-                wRect.width = (region.rotate ? wrapper.height : wrapper.width)*sx;
-                wRect.height = (region.rotate ? wrapper.width : wrapper.height)*sy;
-                if (hitboxSlots.has(slot.data.name)) {
-                    if (_aabb == null) {
-                        _aabb = (mainHitbox == rect2 ? rect1 : rect2);
-                        _aabb.x = wRect.x;
-                        _aabb.y = wRect.y;
-                        _aabb.width = wRect.width;
-                        _aabb.height = wRect.height;
-                    } else {
-                        var x0 = _aabb.x > wRect.x ? wRect.x : _aabb.x;
-                        var x1 = _aabb.right < wRect.right ? wRect.right : _aabb.right;
-                        var y0 = _aabb.y > wRect.y ? wRect.y : _aabb.y;
-                        var y1 = _aabb.bottom < wRect.bottom ? wRect.bottom : _aabb.bottom;
-                        _aabb.left = x0;
-                        _aabb.top = y0;
-                        _aabb.width = x1 - x0;
-                        _aabb.height = y1 - y0;
-                    }
-                }
-            }
-        }
-        
-        if (_aabb != null && (dynamicHitbox || firstFrame)) {
-            _aabb.x -= x;
-            _aabb.y -= y;
-            mainHitbox = _aabb;
-            firstFrame = false;
-        }
-    }
-    
-    public function getImage(regionAttachment:RegionAttachment):Image {
-        if (cachedImages.exists(regionAttachment))
-            return cachedImages.get(regionAttachment);
-        
-        var region:AtlasRegion = cast regionAttachment.rendererObject;
-        var texture:BitmapData = cast region.page.rendererObject;
-        
-        var atlasData = atlasDataMap[name];
-        if (atlasData == null) {
-            var cachedGraphic:BitmapData = texture;
-            atlasData = new AtlasData(cachedGraphic);
-            atlasDataMap[name] = atlasData;
-        }
-        
-        var rect = HXP.rect;
-        rect.x = region.x;
-        rect.y = region.y;
-        rect.width = region.width;
-        rect.height = region.height;
-        
-        var wrapper:Image;
-        
-        if (blit) {
-            var bd = new BitmapData(cast rect.width, cast rect.height, true, 0);
-            HXP.point.x = HXP.point.y = 0;
-            bd.copyPixels(texture, rect, HXP.point);
-            wrapper = new Image(bd);
-        } else {
-            wrapper = new Image(atlasData.createRegion(rect));
-        }
-        
-        wrapper.smooth = smooth;
-        
-        wrapper.originX = region.width / 2;
-        wrapper.originY = region.height / 2;
-        if (region.rotate) {
-            wrapper.angle = -90;
-        }
-        
-        cachedImages.set(regionAttachment, wrapper);
-        wrapperAngles.set(regionAttachment, wrapper.angle);
-        
-        return wrapper;
-    }
+		this.smooth = smooth;
+
+		blit = HXP.renderMode != RenderMode.HARDWARE;
+	}
+
+	public var skin(default, set):String;
+	function set_skin(skin:String)
+	{
+		if (skin != this.skin)
+		{
+			skeleton.skinName = skin;
+			skeleton.setToSetupPose();
+		}
+		return this.skin = skin;
+	}
+
+	public var flipX(get, set):Bool;
+
+	private function get_flipX():Bool
+	{
+		return skeleton.flipX;
+	}
+
+	private function set_flipX(value:Bool):Bool
+	{
+		if (value != skeleton.flipX)
+		{
+			skeleton.flipX = value;
+			skeleton.updateWorldTransform();
+		}
+
+		return value;
+	}
+
+	public var flipY(get, set):Bool;
+
+	private function get_flipY():Bool
+	{
+		return skeleton.flipY;
+	}
+
+	private function set_flipY(value:Bool):Bool
+	{
+		if (value != skeleton.flipY)
+		{
+			skeleton.flipY = value;
+			skeleton.updateWorldTransform();
+		}
+			
+		return value;
+	}
+
+	/**
+	 * Get Spine animation data.
+	 * @param	DataName	The name of the animation data files exported from Spine (.atlas .json .png).
+	 * @param	DataPath	The directory these files are located at
+	 * @param	Scale		Animation scale
+	 */
+	public static function readSkeletonData(dataName:String, dataPath:String, scale:Float = 1):SkeletonData
+	{
+		if (dataPath.lastIndexOf("/") < 0) dataPath += "/"; // append / at the end of the folder path
+		var spineAtlas:Atlas = new Atlas(Assets.getText(dataPath + dataName + ".atlas"), new BitmapDataTextureLoader(dataPath));
+		var json:SkeletonJson = new SkeletonJson(new AtlasAttachmentLoader(spineAtlas));
+		json.scale = scale;
+		var skeletonData:SkeletonData = json.readSkeletonData(Assets.getText(dataPath + dataName + ".json"), dataName);
+		return skeletonData;
+	}
+
+	public override function update():Void
+	{
+		state.update(HXP.elapsed*speed);
+		state.apply(skeleton);
+		skeleton.updateWorldTransform();
+		
+		super.update();
+	}
+
+	public override function renderAtlas(layer:Int, point:Point, camera:Camera):Void
+	{
+		draw(point, camera, layer);
+	}
+
+	public override function render(target:BitmapData, point:Point, camera:Camera):Void
+	{
+		draw(point, camera, 0, target);
+	}
+
+	function draw(point:Point, camera:Camera, layer:Int=0, target:BitmapData=null):Void
+	{
+		p.x = point.x; p.y = point.y;
+		var point = p;
+		var drawOrder:Array<Slot> = skeleton.drawOrder;
+		var flipX:Int = (skeleton.flipX) ? -1 : 1;
+		var flipY:Int = (skeleton.flipY) ? 1 : -1;
+		var flip:Int = flipX * flipY;
+		
+		var radians:Float = angle * MathUtil.RAD;
+		var cos:Float = Math.cos(radians);
+		var sin:Float = Math.sin(radians);
+		
+		var sx = scaleX * scale;
+		var sy = scaleY * scale;
+		
+		var attachment:Attachment;
+		var regionAttachment:RegionAttachment;
+		var wrapper:Image;
+		var region:AtlasRegion;
+		var bone:Bone;
+		var dx:Float, dy:Float;
+		var relX:Float, relY:Float;
+		var rx:Float, ry:Float;
+		
+		for (slot in drawOrder)
+		{
+			attachment = slot.attachment;
+			if (Std.is(attachment, RegionAttachment))
+			{
+				regionAttachment = cast attachment;
+				wrapper = getImage(regionAttachment);
+				wrapper.color = color;
+				wrapper.alpha = alpha;
+
+				region = cast regionAttachment.rendererObject;
+				bone = slot.bone;
+				rx = regionAttachment.x;// + region.offsetX;
+				ry = regionAttachment.y;// + region.offsetY;
+
+				var m = HXP.matrix;
+				m.identity();
+				m.scale(wrapper.scaleX, wrapper.scaleY);
+				m.rotate(-wrapper.angle * MathUtil.RAD);
+				m.translate(wrapper.originX, wrapper.originY);
+				m.scale(bone.worldScaleX * flipX * sx, bone.worldScaleY * flipY * sy);
+				m.rotate(flip * bone.worldRotation * MathUtil.RAD);
+				m.translate(
+					skeleton.x + bone.worldX + point.x + wrapper.x - camera.x * scrollX,
+					skeleton.y + bone.worldY + point.y + wrapper.y - camera.y * scrollY
+				);
+				m.scale(camera.fullScaleX, camera.fullScaleY);
+
+				if (blit) wrapperRender(wrapper, m, target, point, camera);
+				else wrapperRenderAtlas(wrapper, m, layer, point, camera);
+			}
+		}
+	}
+
+	public function getImage(regionAttachment:RegionAttachment):Image
+	{
+		if (cachedImages.exists(regionAttachment))
+			return cachedImages.get(regionAttachment);
+		
+		var region:AtlasRegion = cast regionAttachment.rendererObject;
+		var texture:BitmapData = cast region.page.rendererObject;
+		
+		var atlasData = atlasDataMap[name];
+		if (atlasData == null)
+		{
+			var cachedGraphic:BitmapData = texture;
+			atlasData = new AtlasData(cachedGraphic);
+			atlasDataMap[name] = atlasData;
+		}
+		
+		var rect = HXP.rect;
+		rect.x = region.x;
+		rect.y = region.y;
+		rect.width = region.width;
+		rect.height = region.height;
+		
+		var wrapper:Image;
+		
+		if (blit)
+		{
+			var bd = new BitmapData(cast rect.width, cast rect.height, true, 0);
+			HXP.point.x = HXP.point.y = 0;
+			bd.copyPixels(texture, rect, HXP.point);
+			wrapper = new Image(bd);
+		} else
+		{
+			wrapper = new Image(atlasData.createRegion(rect));
+		}
+
+		var regionWidth:Float = region.rotate ? region.height : region.width;
+		var regionHeight:Float = region.rotate ? region.width : region.height;
+
+		wrapper.angle = -regionAttachment.rotation;
+		wrapper.smooth = smooth;
+		wrapper.scaleX = regionAttachment.scaleX * (regionAttachment.width / region.width);
+		wrapper.scaleY = regionAttachment.scaleY * (regionAttachment.height / region.height);
+
+		var rad:Float = regionAttachment.rotation * MathUtil.RAD,
+			cos:Float = Math.cos(rad),
+			sin:Float = Math.sin(rad);
+		var shiftX:Float = -regionAttachment.width / 2 * regionAttachment.scaleX;
+		var shiftY:Float = -regionAttachment.height / 2 * regionAttachment.scaleY;
+
+		if (region.rotate)
+		{
+			wrapper.angle += 90;
+			shiftX += regionHeight * (regionAttachment.width / region.width);
+		}
+
+		wrapper.originX = regionAttachment.x + shiftX * cos - shiftY * sin;
+		wrapper.originY = -regionAttachment.y + shiftX * sin + shiftY * cos;
+
+		cachedImages.set(regionAttachment, wrapper);
+
+		return wrapper;
+	}
+
+	inline function wrapperRender(wrapper:Image, m:Matrix, target:BitmapData, point:Point, camera:Camera)
+	{
+		target.draw(wrapper._bitmap, m, null, wrapper.blend, null, wrapper._bitmap.smoothing);
+	}
+
+	inline function wrapperRenderAtlas(wrapper:Image, m:Matrix, layer:Int, point:Point, camera:Camera)
+	{
+		wrapper._region.drawMatrix(m.tx, m.ty, m.a, m.b, m.c, m.d, layer, wrapper._red, wrapper._green, wrapper._blue, wrapper._alpha, wrapper.smooth);
+	}
 }
