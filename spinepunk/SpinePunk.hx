@@ -8,13 +8,11 @@ import flash.geom.Point;
 import flash.geom.Rectangle;
 import openfl.Assets;
 import haxepunk.HXP;
-import haxepunk.Camera;
 import haxepunk.RenderMode;
 import haxepunk.Entity;
 import haxepunk.Graphic;
 import haxepunk.graphics.Image;
 import haxepunk.graphics.atlas.AtlasData;
-import haxepunk.utils.MathUtil;
 import spinehaxe.Bone;
 import spinehaxe.Slot;
 import spinehaxe.Skeleton;
@@ -31,7 +29,7 @@ import spinehaxe.platform.openfl.BitmapDataTextureLoader;
 
 using Lambda;
 
-@:access(haxepunk.graphics.Image)
+@:access(com.haxepunk.graphics.Image)
 class SpinePunk extends Graphic
 {
 	static var atlasDataMap:Map<String, AtlasData> = new Map();
@@ -49,15 +47,16 @@ class SpinePunk extends Graphic
 	public var scaleY:Float = 1;
 	public var scale:Float = 1;
 	public var smooth = true;
-	
+
 	var name:String;
-	var firstFrame = true;
-	
+
 	var cachedImages:ObjectMap<RegionAttachment, Image>;
 	
-	public function new(skeletonData:SkeletonData, smooth:Bool=true)
+	public function new(skeletonData:SkeletonData, stateData:AnimationStateData, smooth:Bool=true)
 	{
 		super();
+
+		Bone.yDown = true;
 		
 		this.skeletonData = skeletonData;
 		name = skeletonData.toString();
@@ -66,15 +65,16 @@ class SpinePunk extends Graphic
 		state = new AnimationState(stateData);
 		
 		skeleton = new Skeleton(skeletonData);
+		//skeleton.flipX = true;
+		//skeleton.flipY = true;
 		skeleton.x = 0;
 		skeleton.y = 0;
-		skeleton.flipY = true;
-		
+
 		cachedImages = new ObjectMap();
 
 		this.smooth = smooth;
-
 		blit = HXP.renderMode != RenderMode.HARDWARE;
+		active = true;
 	}
 
 	public var skin(default, set):String;
@@ -142,33 +142,33 @@ class SpinePunk extends Graphic
 
 	public override function update():Void
 	{
-		state.update(HXP.elapsed*speed);
+		state.update(HXP.elapsed * speed);
 		state.apply(skeleton);
 		skeleton.updateWorldTransform();
 		
 		super.update();
 	}
 
-	public override function renderAtlas(layer:Int, point:Point, camera:Camera):Void
+	public override function renderAtlas(layer:Int, point:Point, camera:Point):Void
 	{
 		draw(point, camera, layer);
 	}
 
-	public override function render(target:BitmapData, point:Point, camera:Camera):Void
+	public override function render(target:BitmapData, point:Point, camera:Point):Void
 	{
 		draw(point, camera, 0, target);
 	}
 
-	function draw(point:Point, camera:Camera, layer:Int=0, target:BitmapData=null):Void
+	function draw(point:Point, camera:Point, layer:Int=0, target:BitmapData=null):Void
 	{
-		p.x = point.x; p.y = point.y;
-		var point = p;
+		skeleton.updateWorldTransform();
+
 		var drawOrder:Array<Slot> = skeleton.drawOrder;
 		var flipX:Int = (skeleton.flipX) ? -1 : 1;
-		var flipY:Int = (skeleton.flipY) ? 1 : -1;
+		var flipY:Int = (skeleton.flipY) ? -1 : 1;
 		var flip:Int = flipX * flipY;
 		
-		var radians:Float = angle * MathUtil.RAD;
+		var radians:Float = angle * HXP.RAD;
 		var cos:Float = Math.cos(radians);
 		var sin:Float = Math.sin(radians);
 		
@@ -196,21 +196,23 @@ class SpinePunk extends Graphic
 
 				region = cast regionAttachment.rendererObject;
 				bone = slot.bone;
-				rx = regionAttachment.x;// + region.offsetX;
-				ry = regionAttachment.y;// + region.offsetY;
+				rx = regionAttachment.x;
+				ry = regionAttachment.y;
 
 				var m = HXP.matrix;
 				m.identity();
 				m.scale(wrapper.scaleX, wrapper.scaleY);
-				m.rotate(-wrapper.angle * MathUtil.RAD);
+				m.rotate(-wrapper.angle * HXP.RAD);
 				m.translate(wrapper.originX, wrapper.originY);
-				m.scale(bone.worldScaleX * flipX * sx, bone.worldScaleY * flipY * sy);
-				m.rotate(flip * bone.worldRotation * MathUtil.RAD);
+				m.scale(bone.worldScaleX * flipX, bone.worldScaleY * flipY);
+				m.rotate(((skeleton.flipX ? 180 : 0) - bone.worldRotationX) * HXP.RAD);
+				m.translate(bone.worldX + wrapper.x, bone.worldY + wrapper.y);
+				m.scale(sx, sy);
 				m.translate(
-					skeleton.x + bone.worldX + point.x + wrapper.x - camera.x * scrollX,
-					skeleton.y + bone.worldY + point.y + wrapper.y - camera.y * scrollY
+					skeleton.x + point.x - camera.x * scrollX,
+					skeleton.y + point.y - camera.y * scrollY
 				);
-				m.scale(camera.fullScaleX, camera.fullScaleY);
+				m.scale(HXP.screen.fullScaleX, HXP.screen.fullScaleY);
 
 				if (blit) wrapperRender(wrapper, m, target, point, camera);
 				else wrapperRenderAtlas(wrapper, m, layer, point, camera);
@@ -233,18 +235,21 @@ class SpinePunk extends Graphic
 			atlasData = new AtlasData(cachedGraphic);
 			atlasDataMap[name] = atlasData;
 		}
-		
+
+		var regionWidth:Int = region.rotate ? region.height : region.width;
+		var regionHeight:Int = region.rotate ? region.width : region.height;
+
 		var rect = HXP.rect;
 		rect.x = region.x;
 		rect.y = region.y;
-		rect.width = region.width;
-		rect.height = region.height;
+		rect.width = regionWidth;
+		rect.height = regionHeight;
 		
 		var wrapper:Image;
-		
+
 		if (blit)
 		{
-			var bd = new BitmapData(cast rect.width, cast rect.height, true, 0);
+			var bd = new BitmapData(regionWidth, regionHeight, true, 0);
 			HXP.point.x = HXP.point.y = 0;
 			bd.copyPixels(texture, rect, HXP.point);
 			wrapper = new Image(bd);
@@ -253,15 +258,12 @@ class SpinePunk extends Graphic
 			wrapper = new Image(atlasData.createRegion(rect));
 		}
 
-		var regionWidth:Float = region.rotate ? region.height : region.width;
-		var regionHeight:Float = region.rotate ? region.width : region.height;
-
 		wrapper.angle = -regionAttachment.rotation;
 		wrapper.smooth = smooth;
 		wrapper.scaleX = regionAttachment.scaleX * (regionAttachment.width / region.width);
 		wrapper.scaleY = regionAttachment.scaleY * (regionAttachment.height / region.height);
 
-		var rad:Float = regionAttachment.rotation * MathUtil.RAD,
+		var rad:Float = regionAttachment.rotation * HXP.RAD,
 			cos:Float = Math.cos(rad),
 			sin:Float = Math.sin(rad);
 		var shiftX:Float = -regionAttachment.width / 2 * regionAttachment.scaleX;
@@ -281,12 +283,12 @@ class SpinePunk extends Graphic
 		return wrapper;
 	}
 
-	inline function wrapperRender(wrapper:Image, m:Matrix, target:BitmapData, point:Point, camera:Camera)
+	inline function wrapperRender(wrapper:Image, m:Matrix, target:BitmapData, point:Point, camera:Point)
 	{
 		target.draw(wrapper._bitmap, m, null, wrapper.blend, null, wrapper._bitmap.smoothing);
 	}
 
-	inline function wrapperRenderAtlas(wrapper:Image, m:Matrix, layer:Int, point:Point, camera:Camera)
+	inline function wrapperRenderAtlas(wrapper:Image, m:Matrix, layer:Int, point:Point, camera:Point)
 	{
 		wrapper._region.drawMatrix(m.tx, m.ty, m.a, m.b, m.c, m.d, layer, wrapper._red, wrapper._green, wrapper._blue, wrapper._alpha, wrapper.smooth);
 	}
