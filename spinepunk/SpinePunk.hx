@@ -22,9 +22,10 @@ import spinehaxe.animation.AnimationState;
 import spinehaxe.animation.AnimationStateData;
 import spinehaxe.atlas.Atlas;
 import spinehaxe.atlas.AtlasRegion;
-import spinehaxe.attachments.Attachment;
-import spinehaxe.attachments.RegionAttachment;
 import spinehaxe.attachments.AtlasAttachmentLoader;
+import spinehaxe.attachments.Attachment;
+import spinehaxe.attachments.MeshAttachment;
+import spinehaxe.attachments.RegionAttachment;
 import spinehaxe.platform.openfl.BitmapDataTextureLoader;
 
 using Lambda;
@@ -32,7 +33,7 @@ using Lambda;
 @:access(com.haxepunk.graphics.Image)
 class SpinePunk extends Graphic
 {
-	static var atlasDataMap:Map<String, AtlasData> = new Map();
+	static var atlasDataMap:Map<Attachment, AtlasData> = new Map();
 	static var p:Point = new Point();
 
 	public var skeleton:Skeleton;
@@ -217,7 +218,49 @@ class SpinePunk extends Graphic
 				if (blit) wrapperRender(wrapper, m, target, point, camera);
 				else wrapperRenderAtlas(wrapper, m, layer, point, camera);
 			}
+			// meshes not currently support in buffered render mode
+			else if (!blit && Std.is(attachment, MeshAttachment))
+			{
+				var mesh:MeshAttachment = cast slot.attachment;
+				var atlasData = getAtlasData(mesh);
+				var vertices:Array<Float> = new Array();
+				var uvs = mesh.uvs;
+				mesh.computeWorldVertices(slot, vertices);
+
+				inline function transformX(x:Float) return (skeleton.x + x * sx + point.x - camera.x * scrollX) * HXP.screen.fullScaleX;
+				inline function transformY(y:Float) return (skeleton.y + y * sy + point.y - camera.y * scrollY) * HXP.screen.fullScaleY;
+
+				var i:Int = 0;
+				while (i < mesh.triangles.length)
+				{
+					var t1:Int = mesh.triangles[i] * 2,
+						t2:Int = mesh.triangles[i+1] * 2,
+						t3:Int = mesh.triangles[i+2] * 2;
+					atlasData.prepareTriangle(
+						transformX(vertices[t1]), transformY(vertices[t1 + 1]),
+						uvs[t1], uvs[t1 + 1],
+						transformX(vertices[t2]), transformY(vertices[t2 + 1]),
+						uvs[t2], uvs[t2 + 1],
+						transformX(vertices[t3]), transformY(vertices[t3 + 1]),
+						uvs[t3], uvs[t3 + 1],
+						mesh.r, mesh.g, mesh.b, mesh.a,
+						smooth
+					);
+					i += 3;
+				}
+			}
 		}
+	}
+
+	public function getAtlasData(meshAttachment:MeshAttachment):AtlasData
+	{
+		if (!atlasDataMap.exists(meshAttachment))
+		{
+			var region:AtlasRegion = cast meshAttachment.rendererObject;
+			var texture:BitmapData = cast region.page.rendererObject;
+			atlasDataMap[meshAttachment] = new AtlasData(texture);
+		}
+		return atlasDataMap[meshAttachment];
 	}
 
 	public function getImage(regionAttachment:RegionAttachment):Image
@@ -228,12 +271,12 @@ class SpinePunk extends Graphic
 		var region:AtlasRegion = cast regionAttachment.rendererObject;
 		var texture:BitmapData = cast region.page.rendererObject;
 		
-		var atlasData = atlasDataMap[name];
+		var atlasData = atlasDataMap[regionAttachment];
 		if (atlasData == null)
 		{
 			var cachedGraphic:BitmapData = texture;
 			atlasData = new AtlasData(cachedGraphic);
-			atlasDataMap[name] = atlasData;
+			atlasDataMap[regionAttachment] = atlasData;
 		}
 
 		var regionWidth:Int = region.rotate ? region.height : region.width;
