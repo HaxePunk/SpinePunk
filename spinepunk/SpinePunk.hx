@@ -66,8 +66,6 @@ class SpinePunk extends Graphic
 		state = new AnimationState(stateData);
 		
 		skeleton = new Skeleton(skeletonData);
-		//skeleton.flipX = true;
-		//skeleton.flipY = true;
 		skeleton.x = 0;
 		skeleton.y = 0;
 
@@ -146,7 +144,7 @@ class SpinePunk extends Graphic
 		state.update(HXP.elapsed * speed);
 		state.apply(skeleton);
 		skeleton.updateWorldTransform();
-		
+
 		super.update();
 	}
 
@@ -209,6 +207,7 @@ class SpinePunk extends Graphic
 				m.rotate(((skeleton.flipX ? 180 : 0) - bone.worldRotationX) * HXP.RAD);
 				m.translate(bone.worldX + wrapper.x, bone.worldY + wrapper.y);
 				m.scale(sx, sy);
+				m.rotate(angle * HXP.RAD);
 				m.translate(
 					skeleton.x + point.x - camera.x * scrollX,
 					skeleton.y + point.y - camera.y * scrollY
@@ -227,8 +226,8 @@ class SpinePunk extends Graphic
 				var uvs = mesh.uvs;
 				mesh.computeWorldVertices(slot, vertices);
 
-				inline function transformX(x:Float) return (skeleton.x + x * sx + point.x - camera.x * scrollX) * HXP.screen.fullScaleX;
-				inline function transformY(y:Float) return (skeleton.y + y * sy + point.y - camera.y * scrollY) * HXP.screen.fullScaleY;
+				inline function transformX(x:Float, y:Float) return (skeleton.x + (x * sx * cos) - (y * sy * sin) + point.x - camera.x * scrollX) * HXP.screen.fullScaleX;
+				inline function transformY(x:Float, y:Float) return (skeleton.y + (x * sx * sin) + (y * sy * cos) + point.y - camera.y * scrollY) * HXP.screen.fullScaleY;
 
 				var i:Int = 0;
 				while (i < mesh.triangles.length)
@@ -237,11 +236,11 @@ class SpinePunk extends Graphic
 						t2:Int = mesh.triangles[i+1] * 2,
 						t3:Int = mesh.triangles[i+2] * 2;
 					atlasData.prepareTriangle(
-						transformX(vertices[t1]), transformY(vertices[t1 + 1]),
+						transformX(vertices[t1], vertices[t1 + 1]), transformY(vertices[t1], vertices[t1 + 1]),
 						uvs[t1], uvs[t1 + 1],
-						transformX(vertices[t2]), transformY(vertices[t2 + 1]),
+						transformX(vertices[t2], vertices[t2 + 1]), transformY(vertices[t2], vertices[t2 + 1]),
 						uvs[t2], uvs[t2 + 1],
-						transformX(vertices[t3]), transformY(vertices[t3 + 1]),
+						transformX(vertices[t3], vertices[t3 + 1]), transformY(vertices[t3], vertices[t3 + 1]),
 						uvs[t3], uvs[t3 + 1],
 						mesh.r, mesh.g, mesh.b, mesh.a,
 						smooth
