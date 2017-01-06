@@ -3,6 +3,7 @@ package spinepunk;
 import haxe.ds.ObjectMap;
 import haxe.ds.Vector;
 import flash.display.BitmapData;
+import flash.display.BlendMode;
 import flash.geom.Matrix;
 import flash.geom.Point;
 import flash.geom.Rectangle;
@@ -13,6 +14,8 @@ import haxepunk.Entity;
 import haxepunk.Graphic;
 import haxepunk.graphics.Image;
 import haxepunk.graphics.atlas.AtlasData;
+import haxepunk.utils.Color;
+import haxepunk.utils.MathUtil;
 import spinehaxe.Bone;
 import spinehaxe.Slot;
 import spinehaxe.Skeleton;
@@ -30,7 +33,7 @@ import spinehaxe.platform.openfl.BitmapDataTextureLoader;
 
 using Lambda;
 
-@:access(com.haxepunk.graphics.Image)
+@:access(haxepunk.graphics.Image)
 class SpinePunk extends Graphic
 {
 	static var atlasDataMap:Map<Attachment, AtlasData> = new Map();
@@ -42,12 +45,13 @@ class SpinePunk extends Graphic
 	public var stateData:AnimationStateData;
 	public var angle:Float = 0;
 	public var speed:Float = 1;
-	public var color:Int = 0xffffff;
+	public var color:Color = 0xffffff;
 	public var alpha:Float = 1;
 	public var scaleX:Float = 1;
 	public var scaleY:Float = 1;
 	public var scale:Float = 1;
-	public var smooth = true;
+	public var smooth:Bool = true;
+	public var blend:BlendMode = BlendMode.ALPHA;
 
 	var name:String;
 
@@ -167,7 +171,7 @@ class SpinePunk extends Graphic
 		var flipY:Int = (skeleton.flipY) ? -1 : 1;
 		var flip:Int = flipX * flipY;
 		
-		var radians:Float = angle * HXP.RAD;
+		var radians:Float = angle * MathUtil.RAD;
 		var cos:Float = Math.cos(radians);
 		var sin:Float = Math.sin(radians);
 		
@@ -201,16 +205,16 @@ class SpinePunk extends Graphic
 				var m = HXP.matrix;
 				m.identity();
 				m.scale(wrapper.scaleX, wrapper.scaleY);
-				m.rotate(-wrapper.angle * HXP.RAD);
+				m.rotate(-wrapper.angle * MathUtil.RAD);
 				m.translate(wrapper.originX, wrapper.originY);
 				m.scale(bone.worldScaleX * flipX, bone.worldScaleY * flipY);
-				m.rotate(((skeleton.flipX ? 180 : 0) - bone.worldRotationX) * HXP.RAD);
+				m.rotate(((skeleton.flipX ? 180 : 0) - bone.worldRotationX) * MathUtil.RAD);
 				m.translate(bone.worldX + wrapper.x, bone.worldY + wrapper.y);
 				m.scale(sx, sy);
-				m.rotate(angle * HXP.RAD);
+				m.rotate(angle * MathUtil.RAD);
 				m.translate(
-					skeleton.x + point.x - camera.x * scrollX,
-					skeleton.y + point.y - camera.y * scrollY
+					this.x + skeleton.x + point.x - camera.x * scrollX,
+					this.y + skeleton.y + point.y - camera.y * scrollY
 				);
 				m.scale(HXP.screen.fullScaleX, HXP.screen.fullScaleY);
 
@@ -226,8 +230,8 @@ class SpinePunk extends Graphic
 				var uvs = mesh.uvs;
 				mesh.computeWorldVertices(slot, vertices);
 
-				inline function transformX(x:Float, y:Float) return (skeleton.x + (x * sx * cos) - (y * sy * sin) + point.x - camera.x * scrollX) * HXP.screen.fullScaleX;
-				inline function transformY(x:Float, y:Float) return (skeleton.y + (x * sx * sin) + (y * sy * cos) + point.y - camera.y * scrollY) * HXP.screen.fullScaleY;
+				inline function transformX(x:Float, y:Float) return (this.x + skeleton.x + (x * sx * cos) - (y * sy * sin) + point.x - camera.x * scrollX) * HXP.screen.fullScaleX;
+				inline function transformY(x:Float, y:Float) return (this.y + skeleton.y + (x * sx * sin) + (y * sy * cos) + point.y - camera.y * scrollY) * HXP.screen.fullScaleY;
 
 				var i:Int = 0;
 				while (i < mesh.triangles.length)
@@ -242,8 +246,8 @@ class SpinePunk extends Graphic
 						uvs[t2], uvs[t2 + 1],
 						transformX(vertices[t3], vertices[t3 + 1]), transformY(vertices[t3], vertices[t3 + 1]),
 						uvs[t3], uvs[t3 + 1],
-						mesh.r, mesh.g, mesh.b, mesh.a,
-						smooth
+						mesh.r * color.red, mesh.g * color.green, mesh.b * color.blue, mesh.a * alpha,
+						smooth, blend
 					);
 					i += 3;
 				}
@@ -302,10 +306,11 @@ class SpinePunk extends Graphic
 
 		wrapper.angle = -regionAttachment.rotation;
 		wrapper.smooth = smooth;
+		wrapper.blend = blend;
 		wrapper.scaleX = regionAttachment.scaleX * (regionAttachment.width / region.width);
 		wrapper.scaleY = regionAttachment.scaleY * (regionAttachment.height / region.height);
 
-		var rad:Float = regionAttachment.rotation * HXP.RAD,
+		var rad:Float = regionAttachment.rotation * MathUtil.RAD,
 			cos:Float = Math.cos(rad),
 			sin:Float = Math.sin(rad);
 		var shiftX:Float = -regionAttachment.width / 2 * regionAttachment.scaleX;
@@ -332,6 +337,6 @@ class SpinePunk extends Graphic
 
 	inline function wrapperRenderAtlas(wrapper:Image, m:Matrix, layer:Int, point:Point, camera:Point)
 	{
-		wrapper._region.drawMatrix(m.tx, m.ty, m.a, m.b, m.c, m.d, layer, wrapper._red, wrapper._green, wrapper._blue, wrapper._alpha, wrapper.smooth);
+		wrapper._region.drawMatrix(m.tx, m.ty, m.a, m.b, m.c, m.d, layer, wrapper._red, wrapper._green, wrapper._blue, wrapper._alpha, wrapper.smooth, wrapper.blend);
 	}
 }
