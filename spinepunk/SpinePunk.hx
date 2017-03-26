@@ -56,19 +56,19 @@ class SpinePunk extends Graphic
 	var name:String;
 
 	var cachedImages:ObjectMap<RegionAttachment, Image>;
-	
+
 	public function new(skeletonData:SkeletonData, stateData:AnimationStateData, smooth:Bool=true)
 	{
 		super();
 
 		Bone.yDown = true;
-		
+
 		this.skeletonData = skeletonData;
 		name = skeletonData.toString();
-		
+
 		if (stateData == null) stateData = new AnimationStateData(skeletonData);
 		state = new AnimationState(stateData);
-		
+
 		skeleton = new Skeleton(skeletonData);
 		skeleton.x = 0;
 		skeleton.y = 0;
@@ -123,7 +123,7 @@ class SpinePunk extends Graphic
 			skeleton.flipY = value;
 			skeleton.updateWorldTransform();
 		}
-			
+
 		return value;
 	}
 
@@ -170,14 +170,14 @@ class SpinePunk extends Graphic
 		var flipX:Int = (skeleton.flipX) ? -1 : 1;
 		var flipY:Int = (skeleton.flipY) ? -1 : 1;
 		var flip:Int = flipX * flipY;
-		
+
 		var radians:Float = angle * MathUtil.RAD;
 		var cos:Float = Math.cos(radians);
 		var sin:Float = Math.sin(radians);
-		
+
 		var sx = scaleX * scale;
 		var sy = scaleY * scale;
-		
+
 		var attachment:Attachment;
 		var regionAttachment:RegionAttachment;
 		var wrapper:Image;
@@ -186,7 +186,7 @@ class SpinePunk extends Graphic
 		var dx:Float, dy:Float;
 		var relX:Float, relY:Float;
 		var rx:Float, ry:Float;
-		
+
 		for (slot in drawOrder)
 		{
 			attachment = slot.attachment;
@@ -194,8 +194,11 @@ class SpinePunk extends Graphic
 			{
 				regionAttachment = cast attachment;
 				wrapper = getImage(regionAttachment);
+				var color = color;
+				if (slot.r != 1 || slot.g != 1 || slot.b != 1)
+					color = color.multiply(Color.getColorRGBFloat(slot.r, slot.g, slot.b));
 				wrapper.color = color;
-				wrapper.alpha = alpha;
+				wrapper.alpha = alpha * slot.a;
 
 				region = cast regionAttachment.rendererObject;
 				bone = slot.bone;
@@ -207,8 +210,8 @@ class SpinePunk extends Graphic
 				m.scale(wrapper.scaleX, wrapper.scaleY);
 				m.rotate(-wrapper.angle * MathUtil.RAD);
 				m.translate(wrapper.originX, wrapper.originY);
-				m.scale(bone.worldScaleX * flipX, bone.worldScaleY * flipY);
-				m.rotate(((skeleton.flipX ? 180 : 0) - bone.worldRotationX) * MathUtil.RAD);
+				m.scale(bone.scaleX * flipX, bone.scaleY * flipY);
+				m.rotate((((skeleton.flipX == (bone.scaleX > 0)) ? 180 : 0) - bone.worldRotationX) * MathUtil.RAD);
 				m.translate(bone.worldX + wrapper.x, bone.worldY + wrapper.y);
 				m.scale(sx, sy);
 				m.rotate(angle * MathUtil.RAD);
@@ -246,7 +249,7 @@ class SpinePunk extends Graphic
 						uvs[t2], uvs[t2 + 1],
 						transformX(vertices[t3], vertices[t3 + 1]), transformY(vertices[t3], vertices[t3 + 1]),
 						uvs[t3], uvs[t3 + 1],
-						mesh.r * color.red, mesh.g * color.green, mesh.b * color.blue, mesh.a * alpha,
+						mesh.r * color.red * slot.r, mesh.g * color.green * slot.g, mesh.b * color.blue * slot.b, mesh.a * alpha * slot.a,
 						smooth, blend
 					);
 					i += 3;
@@ -270,10 +273,10 @@ class SpinePunk extends Graphic
 	{
 		if (cachedImages.exists(regionAttachment))
 			return cachedImages.get(regionAttachment);
-		
+
 		var region:AtlasRegion = cast regionAttachment.rendererObject;
 		var texture:BitmapData = cast region.page.rendererObject;
-		
+
 		var atlasData = atlasDataMap[regionAttachment];
 		if (atlasData == null)
 		{
@@ -290,7 +293,7 @@ class SpinePunk extends Graphic
 		rect.y = region.y;
 		rect.width = regionWidth;
 		rect.height = regionHeight;
-		
+
 		var wrapper:Image;
 
 		if (blit)
