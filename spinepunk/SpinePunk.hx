@@ -163,7 +163,7 @@ class SpinePunk extends Graphic
 		draw(point, camera, 0, target);
 	}
 
-	function draw(point:Point, camera:Point, layer:Int=0, target:BitmapData=null):Void
+	inline function draw(point:Point, camera:Point, layer:Int=0, target:BitmapData=null):Void
 	{
 		skeleton.updateWorldTransform();
 
@@ -220,10 +220,16 @@ class SpinePunk extends Graphic
 					this.x + skeleton.x + point.x - camera.x * scrollX,
 					this.y + skeleton.y + point.y - camera.y * scrollY
 				);
-				m.scale(HXP.screen.fullScaleX, HXP.screen.fullScaleY);
 
-				if (blit) wrapperRender(wrapper, m, target, point, camera);
-				else wrapperRenderAtlas(wrapper, m, layer, point, camera);
+				if (blit)
+				{
+					wrapperRender(wrapper, m, target, point, camera);
+				}
+				else
+				{
+					m.scale(HXP.screen.fullScaleX, HXP.screen.fullScaleY);
+					wrapperRenderAtlas(wrapper, m, layer, point, camera);
+				}
 			}
 			// meshes not currently support in buffered render mode
 			else if (!blit && Std.is(attachment, MeshAttachment))
