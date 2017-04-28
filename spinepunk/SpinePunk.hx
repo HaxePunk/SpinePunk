@@ -9,7 +9,6 @@ import flash.geom.Point;
 import flash.geom.Rectangle;
 import openfl.Assets;
 import haxepunk.HXP;
-import haxepunk.RenderMode;
 import haxepunk.Entity;
 import haxepunk.Graphic;
 import haxepunk.graphics.Image;
@@ -45,13 +44,9 @@ class SpinePunk extends Graphic
 	public var stateData:AnimationStateData;
 	public var angle:Float = 0;
 	public var speed:Float = 1;
-	public var color:Color = 0xffffff;
-	public var alpha:Float = 1;
 	public var scaleX:Float = 1;
 	public var scaleY:Float = 1;
 	public var scale:Float = 1;
-	public var smooth:Bool = true;
-	public var blend:BlendMode = BlendMode.ALPHA;
 
 	var name:String;
 
@@ -77,7 +72,6 @@ class SpinePunk extends Graphic
 		cachedImages = new ObjectMap();
 
 		this.smooth = smooth;
-		blit = HXP.renderMode != RenderMode.HARDWARE;
 		active = true;
 	}
 
@@ -153,17 +147,7 @@ class SpinePunk extends Graphic
 		super.update();
 	}
 
-	public override function renderAtlas(layer:Int, point:Point, camera:Point):Void
-	{
-		draw(point, camera, layer);
-	}
-
-	public override function render(target:BitmapData, point:Point, camera:Point):Void
-	{
-		draw(point, camera, 0, target);
-	}
-
-	inline function draw(point:Point, camera:Point, layer:Int=0, target:BitmapData=null):Void
+	public override function render(layer:Int, point:Point, camera:Point):Void
 	{
 		skeleton.updateWorldTransform();
 
@@ -221,18 +205,11 @@ class SpinePunk extends Graphic
 					this.y + skeleton.y + point.y - camera.y * scrollY
 				);
 
-				if (blit)
-				{
-					wrapperRender(wrapper, m, target, point, camera);
-				}
-				else
-				{
-					m.scale(HXP.screen.fullScaleX, HXP.screen.fullScaleY);
-					wrapperRenderAtlas(wrapper, m, layer, point, camera);
-				}
+				m.scale(HXP.screen.fullScaleX, HXP.screen.fullScaleY);
+				renderWrapper(wrapper, m, layer, point, camera);
 			}
 			// meshes not currently support in buffered render mode
-			else if (!blit && Std.is(attachment, MeshAttachment))
+			else if (Std.is(attachment, MeshAttachment))
 			{
 				var mesh:MeshAttachment = cast slot.attachment;
 				var atlasData = getAtlasData(mesh);
@@ -257,7 +234,7 @@ class SpinePunk extends Graphic
 						transformX(vertices[t3], vertices[t3 + 1]), transformY(vertices[t3], vertices[t3 + 1]),
 						uvs[t3], uvs[t3 + 1],
 						mesh.r * color.red * slot.r, mesh.g * color.green * slot.g, mesh.b * color.blue * slot.b, mesh.a * alpha * slot.a,
-						smooth, blend
+						shader, smooth, blend
 					);
 					i += 3;
 				}
@@ -301,18 +278,7 @@ class SpinePunk extends Graphic
 		rect.width = regionWidth;
 		rect.height = regionHeight;
 
-		var wrapper:Image;
-
-		if (blit)
-		{
-			var bd = new BitmapData(regionWidth, regionHeight, true, 0);
-			HXP.point.x = HXP.point.y = 0;
-			bd.copyPixels(texture, rect, HXP.point);
-			wrapper = new Image(bd);
-		} else
-		{
-			wrapper = new Image(atlasData.createRegion(rect));
-		}
+		var wrapper:Image = new Image(atlasData.createRegion(rect));
 
 		wrapper.angle = -regionAttachment.rotation;
 		wrapper.smooth = smooth;
@@ -340,13 +306,8 @@ class SpinePunk extends Graphic
 		return wrapper;
 	}
 
-	inline function wrapperRender(wrapper:Image, m:Matrix, target:BitmapData, point:Point, camera:Point)
+	inline function renderWrapper(wrapper:Image, m:Matrix, layer:Int, point:Point, camera:Point)
 	{
-		target.draw(wrapper._bitmap, m, null, wrapper.blend, null, wrapper._bitmap.smoothing);
-	}
-
-	inline function wrapperRenderAtlas(wrapper:Image, m:Matrix, layer:Int, point:Point, camera:Point)
-	{
-		wrapper._region.drawMatrix(m.tx, m.ty, m.a, m.b, m.c, m.d, layer, wrapper._red, wrapper._green, wrapper._blue, wrapper._alpha, wrapper.smooth, wrapper.blend);
+		wrapper._region.drawMatrix(m.tx, m.ty, m.a, m.b, m.c, m.d, layer, wrapper._red, wrapper._green, wrapper._blue, wrapper.alpha, shader, wrapper.smooth, wrapper.blend);
 	}
 }
