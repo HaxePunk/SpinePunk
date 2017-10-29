@@ -41,6 +41,7 @@ class SpinePunk extends Graphic
 	static var textureMap:Map<BitmapData, Texture> = new Map();
 	static var p:Point = new Point();
 	static var _triangles:Array<Int> = [0, 1, 2, 0, 2, 3];
+	static var _vertices:Array<Float> = new Array();
 
 	public var skeleton:Skeleton;
 	public var skeletonData:SkeletonData;
@@ -173,20 +174,24 @@ class SpinePunk extends Graphic
 
 		for (slot in drawOrder)
 		{
+			var blend = switch (slot.data.blendMode) {
+				case spine.BlendMode.additive: haxepunk.utils.BlendMode.Add;
+				default: this.blend;
+			};
 			attachment = slot.attachment;
 
 			if (attachment != null)
 			{
 				var atlasData:AtlasData;
-				var vertices:Array<Float> = new Array();
 				var uvs:Array<Float>;
 				var triangles:Array<Int>;
+				HXP.clear(_vertices);
 				var r:Float, g:Float, b:Float, a:Float;
 				if (Std.is(attachment, RegionAttachment))
 				{
 					var region:RegionAttachment = cast attachment;
 					atlasData = getAtlasData(region);
-					region.computeWorldVertices(0, 0, slot.bone, vertices);
+					region.computeWorldVertices(0, 0, slot.bone, _vertices);
 					uvs = region.uvs;
 					triangles = _triangles;
 					r = region.r;
@@ -198,7 +203,7 @@ class SpinePunk extends Graphic
 				{
 					var mesh:MeshAttachment = cast attachment;
 					atlasData = getAtlasData(mesh);
-					mesh.computeWorldVertices(slot, vertices);
+					mesh.computeWorldVertices(slot, _vertices);
 					uvs = mesh.uvs;
 					triangles = mesh.triangles;
 					r = mesh.r;
@@ -213,11 +218,11 @@ class SpinePunk extends Graphic
 
 				inline function transformX(x:Float, y:Float)
 				{
-					return (camera.floorX(this.x) + skeleton.x + (x * sx * cos) - (y * sy * sin) + camera.floorX(point.x) - camera.floorX(camera.x * scrollX)) * camera.fullScaleX;
+					return (floorX(camera, this.x) + skeleton.x + (x * sx * cos) - (y * sy * sin) + floorX(camera, point.x) - floorX(camera, camera.x * scrollX)) * camera.fullScaleX;
 				}
 				inline function transformY(x:Float, y:Float)
 				{
-					return (camera.floorY(this.y) + skeleton.y + (x * sx * sin) + (y * sy * cos) + camera.floorY(point.y) - camera.floorY(camera.y * scrollY)) * camera.fullScaleY;
+					return (floorY(camera, this.y) + skeleton.y + (x * sx * sin) + (y * sy * cos) + floorY(camera, point.y) - floorY(camera, camera.y * scrollY)) * camera.fullScaleY;
 				}
 
 				var i:Int = 0;
@@ -229,13 +234,13 @@ class SpinePunk extends Graphic
 						t2:Int = triangles[i+1] * 2,
 						t3:Int = triangles[i+2] * 2;
 					atlasData.prepareTriangle(
-						transformX(vertices[t1], vertices[t1 + 1]), transformY(vertices[t1], vertices[t1 + 1]),
+						transformX(_vertices[t1], _vertices[t1 + 1]), transformY(_vertices[t1], _vertices[t1 + 1]),
 						uvs[t1], uvs[t1 + 1],
-						transformX(vertices[t2], vertices[t2 + 1]), transformY(vertices[t2], vertices[t2 + 1]),
+						transformX(_vertices[t2], _vertices[t2 + 1]), transformY(_vertices[t2], _vertices[t2 + 1]),
 						uvs[t2], uvs[t2 + 1],
-						transformX(vertices[t3], vertices[t3 + 1]), transformY(vertices[t3], vertices[t3 + 1]),
+						transformX(_vertices[t3], _vertices[t3 + 1]), transformY(_vertices[t3], _vertices[t3 + 1]),
 						uvs[t3], uvs[t3 + 1],
-						color, alpha, shader, smooth, blend
+						color, alpha, shader, smooth, blend, flexibleLayer
 					);
 					i += 3;
 				}
