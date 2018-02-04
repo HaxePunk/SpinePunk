@@ -2,21 +2,17 @@ package spinepunk;
 
 import haxe.ds.ObjectMap;
 import haxe.ds.Vector;
-import flash.display.BitmapData;
-import flash.display.BlendMode;
-import flash.geom.Matrix;
-import flash.geom.Point;
-import flash.geom.Rectangle;
-import openfl.Assets;
 import haxepunk.HXP;
 import haxepunk.Camera;
 import haxepunk.Entity;
 import haxepunk.Graphic;
+import haxepunk.assets.AssetLoader;
 import haxepunk.graphics.Image;
 import haxepunk.graphics.atlas.AtlasData;
 import haxepunk.graphics.hardware.Texture;
-import haxepunk.utils.Color;
 import haxepunk.math.MathUtil;
+import haxepunk.math.Vector2;
+import haxepunk.utils.Color;
 import spinehaxe.Bone;
 import spinehaxe.Slot;
 import spinehaxe.Skeleton;
@@ -38,8 +34,7 @@ using Lambda;
 class SpinePunk extends Graphic
 {
 	static var atlasDataMap:Map<Attachment, AtlasData> = new Map();
-	static var textureMap:Map<BitmapData, Texture> = new Map();
-	static var p:Point = new Point();
+	static var p:Vector2 = new Vector2();
 	static var _triangles:Array<Int> = [0, 1, 2, 0, 2, 3];
 	static var _vertices:Array<Float> = new Array();
 
@@ -132,10 +127,10 @@ class SpinePunk extends Graphic
 	public static function readSkeletonData(dataName:String, dataPath:String, scale:Float = 1):SkeletonData
 	{
 		if (dataPath.lastIndexOf("/") < 0) dataPath += "/"; // append / at the end of the folder path
-		var spineAtlas:Atlas = new Atlas(Assets.getText(dataPath + dataName + ".atlas"), new BitmapDataTextureLoader(dataPath));
+		var spineAtlas:Atlas = new Atlas(AssetLoader.getText(dataPath + dataName + ".atlas"), new BitmapDataTextureLoader(dataPath));
 		var json:SkeletonJson = new SkeletonJson(new AtlasAttachmentLoader(spineAtlas));
 		json.scale = scale;
-		var skeletonData:SkeletonData = json.readSkeletonData(Assets.getText(dataPath + dataName + ".json"), dataName);
+		var skeletonData:SkeletonData = json.readSkeletonData(AssetLoader.getText(dataPath + dataName + ".json"), dataName);
 		return skeletonData;
 	}
 
@@ -149,7 +144,7 @@ class SpinePunk extends Graphic
 	}
 
 	@:access(haxepunk.graphics.Image)
-	public override function render(point:Point, camera:Camera):Void
+	public override function render(point:Vector2, camera:Camera):Void
 	{
 		skeleton.updateWorldTransform();
 
@@ -213,16 +208,17 @@ class SpinePunk extends Graphic
 				}
 				else
 				{
-					throw "Unsupported attachment type: " + slot.attachment;
+					// unsupported attachment type
+					continue;
 				}
 
 				inline function transformX(x:Float, y:Float)
 				{
-					return (floorX(camera, this.x) + skeleton.x + (x * sx * cos) - (y * sy * sin) + floorX(camera, point.x) - floorX(camera, camera.x * scrollX)) * camera.fullScaleX;
+					return (floorX(camera, this.x) + skeleton.x + (x * sx * cos) - (y * sy * sin) + floorX(camera, point.x) - floorX(camera, camera.x * scrollX)) * camera.screenScaleX;
 				}
 				inline function transformY(x:Float, y:Float)
 				{
-					return (floorY(camera, this.y) + skeleton.y + (x * sx * sin) + (y * sy * cos) + floorY(camera, point.y) - floorY(camera, camera.y * scrollY)) * camera.fullScaleY;
+					return (floorY(camera, this.y) + skeleton.y + (x * sx * sin) + (y * sy * cos) + floorY(camera, point.y) - floorY(camera, camera.y * scrollY)) * camera.screenScaleY;
 				}
 
 				var i:Int = 0;
@@ -267,12 +263,8 @@ class SpinePunk extends Graphic
 			{
 				throw "Unsupported attachment type: " + attachment;
 			}
-			var bmd:BitmapData = cast region.page.rendererObject;
-			if (!textureMap.exists(bmd))
-			{
-				textureMap[bmd] = new Texture(bmd);
-			}
-			atlasDataMap[attachment] = new AtlasData(textureMap[bmd]);
+			var bmd:Texture = cast region.page.rendererObject;
+			atlasDataMap[attachment] = new AtlasData(bmd);
 		}
 		return atlasDataMap[attachment];
 	}
