@@ -6,6 +6,7 @@ import haxepunk.HXP;
 import haxepunk.Camera;
 import haxepunk.Entity;
 import haxepunk.Graphic;
+import haxepunk.assets.AssetCache;
 import haxepunk.assets.AssetLoader;
 import haxepunk.graphics.Image;
 import haxepunk.graphics.atlas.AtlasData;
@@ -13,22 +14,44 @@ import haxepunk.graphics.hardware.Texture;
 import haxepunk.math.MathUtil;
 import haxepunk.math.Vector2;
 import haxepunk.utils.Color;
-import spinehaxe.Bone;
-import spinehaxe.Slot;
-import spinehaxe.Skeleton;
-import spinehaxe.SkeletonData;
-import spinehaxe.SkeletonJson;
-import spinehaxe.animation.AnimationState;
-import spinehaxe.animation.AnimationStateData;
-import spinehaxe.atlas.Atlas;
-import spinehaxe.atlas.AtlasRegion;
-import spinehaxe.attachments.AtlasAttachmentLoader;
-import spinehaxe.attachments.Attachment;
-import spinehaxe.attachments.MeshAttachment;
-import spinehaxe.attachments.RegionAttachment;
-import spinehaxe.platform.openfl.BitmapDataTextureLoader;
+import spine.Bone;
+import spine.Slot;
+import spine.Skeleton;
+import spine.SkeletonData;
+import spine.SkeletonJson;
+import spine.animation.AnimationState;
+import spine.animation.AnimationStateData;
+import spine.atlas.Atlas;
+import spine.atlas.AtlasPage;
+import spine.atlas.AtlasRegion;
+import spine.attachments.AtlasAttachmentLoader;
+import spine.attachments.Attachment;
+import spine.attachments.MeshAttachment;
+import spine.attachments.RegionAttachment;
 
 using Lambda;
+
+class HaxePunkTextureLoader implements spine.atlas.TextureLoader
+{
+	var prefix:String;
+	var assetCache:AssetCache;
+
+	public function new(prefix:String, ?assetCache:AssetCache) {
+		this.prefix = prefix;
+		this.assetCache = assetCache == null ? AssetCache.global : assetCache;
+	}
+
+	public function loadPage(page:AtlasPage, path:String):Void {
+		var texture:Texture = assetCache.getTexture(prefix + path);
+		page.rendererObject = texture;
+		page.width = texture.width;
+		page.height = texture.height;
+	}
+
+	public function loadRegion(region:AtlasRegion):Void {}
+
+	public function unloadPage(page:AtlasPage):Void {}
+}
 
 @:access(haxepunk.graphics.Image)
 class SpinePunk extends Graphic
@@ -127,7 +150,7 @@ class SpinePunk extends Graphic
 	public static function readSkeletonData(dataName:String, dataPath:String, scale:Float = 1):SkeletonData
 	{
 		if (dataPath.lastIndexOf("/") < 0) dataPath += "/"; // append / at the end of the folder path
-		var spineAtlas:Atlas = new Atlas(AssetLoader.getText(dataPath + dataName + ".atlas"), new BitmapDataTextureLoader(dataPath));
+		var spineAtlas:Atlas = new Atlas(AssetLoader.getText(dataPath + dataName + ".atlas"), new HaxePunkTextureLoader(dataPath));
 		var json:SkeletonJson = new SkeletonJson(new AtlasAttachmentLoader(spineAtlas));
 		json.scale = scale;
 		var skeletonData:SkeletonData = json.readSkeletonData(AssetLoader.getText(dataPath + dataName + ".json"), dataName);
