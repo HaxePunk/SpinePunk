@@ -42,7 +42,7 @@ class HaxePunkTextureLoader implements spine.atlas.TextureLoader
 	}
 
 	public function loadPage(page:AtlasPage, path:String):Void {
-		var texture:Texture = assetCache.getTexture(prefix + path);
+		var texture:Texture = assetCache.getTexture(prefix + path, false);
 		page.rendererObject = texture;
 		page.width = texture.width;
 		page.height = texture.height;
@@ -56,7 +56,6 @@ class HaxePunkTextureLoader implements spine.atlas.TextureLoader
 @:access(haxepunk.graphics.Image)
 class SpinePunk extends Graphic
 {
-	static var atlasDataMap:Map<Attachment, AtlasData> = new Map();
 	static var p:Vector2 = new Vector2();
 	static var _triangles:Array<Int> = [0, 1, 2, 0, 2, 3];
 	static var _vertices:Array<Float> = new Array();
@@ -70,6 +69,8 @@ class SpinePunk extends Graphic
 	public var scaleX:Float = 1;
 	public var scaleY:Float = 1;
 	public var scale:Float = 1;
+
+	var atlasDataMap:Map<Attachment, AtlasData> = new Map();
 
 	var name:String;
 
@@ -147,10 +148,11 @@ class SpinePunk extends Graphic
 	 * @param	DataPath	The directory these files are located at
 	 * @param	Scale		Animation scale
 	 */
-	public static function readSkeletonData(dataName:String, dataPath:String, scale:Float = 1):SkeletonData
+	public static function readSkeletonData(dataName:String, dataPath:String, scale:Float = 1, ?assetCache:AssetCache):SkeletonData
 	{
 		if (dataPath.lastIndexOf("/") < 0) dataPath += "/"; // append / at the end of the folder path
-		var spineAtlas:Atlas = new Atlas(AssetLoader.getText(dataPath + dataName + ".atlas"), new HaxePunkTextureLoader(dataPath));
+		var textureLoader = new HaxePunkTextureLoader(dataPath, assetCache);
+		var spineAtlas:Atlas = new Atlas(AssetLoader.getText(dataPath + dataName + ".atlas"), textureLoader);
 		var json:SkeletonJson = new SkeletonJson(new AtlasAttachmentLoader(spineAtlas));
 		json.scale = scale;
 		var skeletonData:SkeletonData = json.readSkeletonData(AssetLoader.getText(dataPath + dataName + ".json"), dataName);
@@ -185,7 +187,6 @@ class SpinePunk extends Graphic
 
 		var attachment:Attachment;
 		var regionAttachment:RegionAttachment;
-		var wrapper:Image;
 		var dx:Float, dy:Float;
 		var relX:Float, relY:Float;
 		var rx:Float, ry:Float;
@@ -237,11 +238,11 @@ class SpinePunk extends Graphic
 
 				inline function transformX(x:Float, y:Float)
 				{
-					return (floorX(camera, this.x) + skeleton.x + (x * sx * cos) - (y * sy * sin) + floorX(camera, point.x) - floorX(camera, camera.x * scrollX)) * camera.screenScaleX;
+					return (floorX(camera, this.x) + floorX(camera, skeleton.x + (x * sx * cos) - (y * sy * sin)) + floorX(camera, point.x) - floorX(camera, camera.x * scrollX)) * camera.screenScaleX;
 				}
 				inline function transformY(x:Float, y:Float)
 				{
-					return (floorY(camera, this.y) + skeleton.y + (x * sx * sin) + (y * sy * cos) + floorY(camera, point.y) - floorY(camera, camera.y * scrollY)) * camera.screenScaleY;
+					return (floorY(camera, this.y) + floorY(camera, skeleton.y + (x * sx * sin) + (y * sy * cos)) + floorY(camera, point.y) - floorY(camera, camera.y * scrollY)) * camera.screenScaleY;
 				}
 
 				var i:Int = 0;
